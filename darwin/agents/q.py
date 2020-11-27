@@ -33,10 +33,10 @@ class QAgent:
         # if np.random.random() < EPSILON:
         #     return self.env.action_space.sample()
         
-        # print('obs', obs)
-        # print('0-----------------')
-        # for a in self.actions:
-        #     print(a)
+        # # print('obs', obs)
+        # # print('0-----------------')
+        # # for a in self.actions:
+        # #     print(a)
 
         # action_val_pairs = [(a, self.Q[obs, a]) for a in self.actions]
         # max_q = max(action_val_pairs, key=lambda x: x[1])
