@@ -159,7 +159,7 @@ class TrainViewer(MjViewer):
         self.env = env
         self.policies = policies
         self.display_window = display_window
-        self.seed = seed
+        # self.seed = seed
         self.duration = duration
 
         self.total_rew = 0.0
@@ -204,15 +204,17 @@ class TrainViewer(MjViewer):
             if len(self.policies) == 1:
                 action, _ = self.policies[0].act(self.ob)
             else:
-                self.ob = splitobs(self.ob, keepdims=False)
-                ob_policy_idx = np.split(np.arange(len(self.ob)), len(self.policies))
-                actions = []
-                for i, policy in enumerate(self.policies):
-                    inp = itemgetter(*ob_policy_idx[i])(self.ob)
-                    inp = listdict2dictnp([inp] if ob_policy_idx[i].shape[0] == 1 else inp)
-                    ac = policy.act(inp)
-                    actions.append(ac)
-                action = listdict2dictnp(actions, keepdims=True)
+                # self.ob = splitobs(self.ob, keepdims=False)
+                # ob_policy_idx = np.split(np.arange(len(self.ob)), len(self.policies))
+                # actions = []
+                # for i, policy in enumerate(self.policies):
+                #     inp = itemgetter(*ob_policy_idx[i])(self.ob)
+                #     inp = listdict2dictnp([inp] if ob_policy_idx[i].shape[0] == 1 else inp)
+                #     ac = policy.act(inp)
+                #     actions.append(ac)
+                # action = listdict2dictnp(actions, keepdims=True)
+                action = self.policies[0].act(self.ob)
+                action = listdict2dictnp([action], keepdims=True)
 
             self.ob, rew, done, env_info = self.env.step(action)
             self.total_rew += rew
