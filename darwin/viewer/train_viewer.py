@@ -100,8 +100,7 @@ class TrainViewer(MjViewer):
                     action = listdict2dictnp(actions, keepdims=True)
 
                 self.ob, rew, done, env_info = self.env.step(action)
-
-                print('IS ITER DONE', done)
+                # print("Observation: ", self.ob)
 
                 # Update policies
                 if len(self.policies) == 1:
@@ -119,9 +118,13 @@ class TrainViewer(MjViewer):
 
 
                 self.total_rew += rew
+                print("Reward at this step: ", rew)
+                print("Cumulative Reward: ", self.total_rew)
 
                 if done or env_info.get('discard_episode', False):
+                    print('EPISODE COMPLETE.')
                     self.reset_increment()
+                    break
 
                 if self.display_window:
                     self.add_overlay(const.GRID_TOPRIGHT, "Reset env; (current seed: {})".format(self.seed), "N - next / P - previous ")
