@@ -47,6 +47,7 @@ class TrainViewer(MjViewer):
         if hasattr(env, "reset_goal"):
             self.goal = env.reset_goal()
         super().__init__(self.env.unwrapped.sim)
+
         # TO DO: remove circular dependency on viewer object. It looks fishy.
         self.env.unwrapped.viewer = self
         if self.render and self.display_window:
@@ -81,7 +82,10 @@ class TrainViewer(MjViewer):
             print('#######################')
             print('Episode # {}'.format(episode))
             print('#######################')
+            saved_state = self.env.sim.get_state()
+            print(saved_state)
             for step in range(self.steps):
+                
                 if len(self.policies) == 1:
                     action, _ = self.policies[0].act(self.ob)
                     last_act = action
