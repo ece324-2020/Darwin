@@ -70,3 +70,9 @@ class DiscretizeActionWrapper(gym.ActionWrapper):
         action[self.action_key] = self.discrete_to_continuous_act_map[agent_idxs, ac_idxs, ac]
         return action
 
+def update_obs_space(env, delta):
+    spaces = env.observation_space.spaces.copy()
+    for key, shape in delta.items():
+        spaces[key] = Box(-np.inf, np.inf, shape, np.float32)
+    return Dict(spaces)
+
