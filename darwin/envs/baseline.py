@@ -61,12 +61,12 @@ class BaselineRewardWrapper(gym.Wrapper):
         
         self.metadata['n_agents'] = self.n_agents
 
-        self.unwrapped.agent_names = [f'hider{i}' for i in range(self.n_agents)]
+        self.unwrapped.agent_names = [f'agent{i}' for i in range(self.n_agents)]
 
     def step(self, action):
         obs, rew, done, info = self.env.step(action)
 
-        this_rew = np.ones((self.n_agents,))
+        this_rew = np.subtract(np.ones((self.n_agents,)), 1.01)
         
         rew += this_rew
         return obs, rew, done, info
@@ -130,22 +130,7 @@ class Baseline(Env):
         builder = WorldBuilder(world_params, seed)
         floor = Floor()
         builder.append(floor)
-        '''
-        # Walls
-        wallsize = 0.1
-        wall = Geom('box', (wallsize, self.floor_size, 0.5), name="wall1")
-        wall.mark_static()
-        floor.append(wall, placement_xy=(0, 0))
-        wall = Geom('box', (wallsize, self.floor_size, 0.5), name="wall2")
-        wall.mark_static()
-        floor.append(wall, placement_xy=(1, 0))
-        wall = Geom('box', (self.floor_size - wallsize*2, wallsize, 0.5), name="wall3")
-        wall.mark_static()
-        floor.append(wall, placement_xy=(1/2, 0))
-        wall = Geom('box', (self.floor_size - wallsize*2, wallsize, 0.5), name="wall4")
-        wall.mark_static()
-        floor.append(wall, placement_xy=(1/2, 1))
-        '''
+
         for module in self.modules:
             module.build_world_step(self, floor, self.floor_size)
 
