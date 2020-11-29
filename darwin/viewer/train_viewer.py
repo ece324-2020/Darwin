@@ -99,9 +99,10 @@ class TrainViewer(MjViewer):
                     self.reset_increment()
                     self.env.unwrapped.sim.set_state(self.saved_state)
                     self.ob = self.ob_copy
+                    # Exit this episode
+                    break
 
-                if self.show_render:
-                    self.perform_render()
+                self.perform_render()
 
             self.rewards.append(self.total_rew)
 
@@ -109,13 +110,14 @@ class TrainViewer(MjViewer):
 
     
     def perform_render(self):
-        self.add_overlay(const.GRID_TOPRIGHT, "Reset env; (current seed: {})".format(self.seed), "N - next / P - previous ")
-        self.add_overlay(const.GRID_TOPRIGHT, "Reward", str(self.total_rew))
-        if hasattr(self.env.unwrapped, "viewer_stats"):
-            for k, v in self.env.unwrapped.viewer_stats.items():
-                self.add_overlay(const.GRID_TOPRIGHT, k, str(v))
+        if self.show_render:
+            self.add_overlay(const.GRID_TOPRIGHT, "Reset env; (current seed: {})".format(self.seed), "N - next / P - previous ")
+            self.add_overlay(const.GRID_TOPRIGHT, "Reward", str(self.total_rew))
+            if hasattr(self.env.unwrapped, "viewer_stats"):
+                for k, v in self.env.unwrapped.viewer_stats.items():
+                    self.add_overlay(const.GRID_TOPRIGHT, k, str(v))
 
-        self.env.render()
+            self.env.render()
 
 
     def reset_increment(self):
@@ -143,7 +145,7 @@ policy_types = {
 
 def qn_trainer(policies, env, ob, render_env, step):
     if len(policies) == 1:
-        action, _ = policies[0].act(ob)
+        action = policies[0].act(ob)
         last_act = action
         last_ob = ob
     else:
