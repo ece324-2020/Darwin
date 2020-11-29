@@ -37,4 +37,4 @@ def idx_to_action(idx):
     return action
 
 def action_to_idx(action):
-    return (action[0] * 144) + (action[1] * 12) + action[2] 
+    return (action[0] * 144) + (action[1] * 12) + action[2]

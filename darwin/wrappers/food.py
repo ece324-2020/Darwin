@@ -1,8 +1,13 @@
 import gym
 import numpy as np
-from mae_envs.wrappers.util import update_obs_space
-from mujoco_worldgen.util.types import store_args
-from gym.spaces import Tuple, MultiDiscrete
+from gym.spaces import Tuple, MultiDiscrete, Dict, Box
+
+
+def update_obs_space(env, delta):
+    spaces = env.observation_space.spaces.copy()
+    for key, shape in delta.items():
+        spaces[key] = Box(-np.inf, np.inf, shape, np.float32)
+    return Dict(spaces)
 
 
 class FoodHealthWrapper(gym.Wrapper):
@@ -16,20 +21,22 @@ class FoodHealthWrapper(gym.Wrapper):
                                    before it disappears
             respawn_time (int): Number of time steps after which food items
                                 that have been eaten reappear
-            food_rew_type (string): can be
-                'selfish': each agent gets an inividual reward for the food they eat
-                'joint_mean': food rewards are averaged over teams
             reward_scale (float or (float, float)): scales the reward by this amount. If tuple of
                 floats, the exact reward scaling is uniformly sampled from
                 (reward_scale[0], reward_scale[1]) at the beginning of every episode.
             reward_scale_obs (bool): If true, adds the reward scale for the current
                 episode to food_obs
     '''
-    @store_args
-    def __init__(self, env, eat_thresh=0.5, max_food_health=10, respawn_time=np.inf,
-                 food_rew_type='selfish', reward_scale=1.0, reward_scale_obs=False,
-                 ):
+    def __init__(self, env, eat_thresh=0.5, max_food_health=5, respawn_time=np.inf,
+                 reward_scale=1.0, reward_scale_obs=False):
         super().__init__(env)
+        self.env = env
+        self.eat_thresh = eat_thresh
+        self.max_food_health = max_food_health
+        self.respawn_time = respawn_time
+        self.reward_scale = reward_scale
+        self.reward_scale_obs = reward_scale_obs
+
         self.n_agents = self.metadata['n_agents']
 
         if type(reward_scale) not in [list, tuple, np.ndarray]:
@@ -67,7 +74,7 @@ class FoodHealthWrapper(gym.Wrapper):
         return self.observation(obs)
 
     def observation(self, obs):
-        # Add food position and healths to obersvations
+        # Add food position and healths to observations
         food_pos = obs['food_pos']
         obs['food_health'] = self.food_healths
         obs['food_obs'] = np.concatenate([food_pos, self.food_healths], 1)
@@ -111,20 +118,17 @@ class FoodHealthWrapper(gym.Wrapper):
                 f"There is a food health below 0: {self.food_healths}"
 
             # calculate food reward
-            if self.food_rew_type == 'selfish':
-                food_rew = np.sum(eat, axis=1)
-            elif self.food_rew_type == 'joint_mean':
-                food_rew = np.sum(eat, axis=1)
-                team_index = self.metadata['team_index']
-                for team_index_number in np.unique(team_index):
-                    food_rew[team_index == team_index_number] = np.mean(food_rew[team_index == team_index_number])
-            else:
-                raise ValueError(f"Food reward type {self.food_rew_type} unknown.")
+            food_rew = np.sum(eat, axis=1)
         else:
             food_rew = 0.0
 
         info['agents_eat'] = eat
         rew += food_rew * self.curr_reward_scale
+        #print("food health: ", self.observation(obs)['food_health'])
+        done = True
+        for h in self.observation(obs)['food_health']:
+            if h[0] > 0.:
+                done = False
         return self.observation(obs), rew, done, info
 
 
