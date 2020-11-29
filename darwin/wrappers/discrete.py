@@ -54,7 +54,7 @@ class DiscretizeActionWrapper(gym.ActionWrapper):
     def action(self, action):
         action = deepcopy(action)
         ac = action[self.action_key]
-        print(ac)
+        #print(ac)
 
         # helper variables for indexing the discrete-to-continuous action map
         agent_idxs = np.tile(np.arange(ac.shape[0])[:, None], ac.shape[1])
@@ -69,4 +69,10 @@ class DiscretizeActionWrapper(gym.ActionWrapper):
 
         action[self.action_key] = self.discrete_to_continuous_act_map[agent_idxs, ac_idxs, ac]
         return action
+
+def update_obs_space(env, delta):
+    spaces = env.observation_space.spaces.copy()
+    for key, shape in delta.items():
+        spaces[key] = Box(-np.inf, np.inf, shape, np.float32)
+    return Dict(spaces)
 

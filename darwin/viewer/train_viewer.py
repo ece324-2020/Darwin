@@ -2,10 +2,9 @@ import time
 import glfw
 import numpy as np
 from operator import itemgetter
-
+import time
 from mujoco_py import const, MjViewer
-
-from utils.util import listdict2dictnp
+from utils.util import listdict2dictnp, convert_obs
 
 
 STEPS = 300
@@ -23,7 +22,11 @@ def splitobs(obs, keepdims=True):
 
 
 class TrainViewer(MjViewer):
+<<<<<<< HEAD
     def __init__(self, env, policies, policy_type='dq', show_render=True, seed=None, duration=None, episodes=EPISODES, steps=STEPS):
+=======
+    def __init__(self, env, policies, display_window=True, seed=None, duration=30, episodes=EPISODES, steps=STEPS):
+>>>>>>> origin/main
         if seed is None:
             self.seed = env.seed()[0]
         else:
@@ -37,6 +40,7 @@ class TrainViewer(MjViewer):
         self.duration = duration
         self.steps = steps
         self.episodes = episodes
+        
 
         self.total_rew = 0.
         self.ob = env.reset()
@@ -48,6 +52,7 @@ class TrainViewer(MjViewer):
         if hasattr(env, "reset_goal"):
             self.goal = env.reset_goal()
         super().__init__(self.env.unwrapped.sim)
+
         # TO DO: remove circular dependency on viewer object. It looks fishy.
         self.env.unwrapped.viewer = self
         if self.render and self.show_render:
@@ -120,9 +125,11 @@ class TrainViewer(MjViewer):
         self.n_episodes += 1
         print(f"Reward: {self.total_rew} (rolling average: {self.total_rew_avg})")
         self.total_rew = 0.0
-        self.seed += 1
+        #self.seed += 1
         self.env.seed(self.seed)
+        self.env.sim.set_state(self.saved_state)
         self.ob = self.env.reset()
+        
         for policy in self.policies:
             policy.reset()
         if hasattr(self.env, "reset_goal"):

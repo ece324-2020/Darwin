@@ -10,10 +10,12 @@ sys.path.insert(1, '/Users/eric/Darwin_project')
 from wrappers.food import FoodHealthWrapper, AlwaysEatWrapper
 from wrappers.multi_agent import (SplitMultiAgentActions, SplitObservations,
                                     SelectKeysWrapper)
+from wrappers.lidar import Lidar
 from wrappers.discrete import DiscretizeActionWrapper
 from modules.food import Food
 from modules.agents import Agents
 from modules.util import uniform_placement
+from modules.lidar import LidarSites
 
 
 class TrackStatWrapper(gym.Wrapper):
@@ -59,12 +61,12 @@ class BaselineRewardWrapper(gym.Wrapper):
         
         self.metadata['n_agents'] = self.n_agents
 
-        self.unwrapped.agent_names = [f'hider{i}' for i in range(self.n_agents)]
+        self.unwrapped.agent_names = [f'agent{i}' for i in range(self.n_agents)]
 
     def step(self, action):
         obs, rew, done, info = self.env.step(action)
 
-        this_rew = np.ones((self.n_agents,))
+        this_rew = np.subtract(np.ones((self.n_agents,)), 1.01)
         
         rew += this_rew
         return obs, rew, done, info
@@ -128,22 +130,7 @@ class Baseline(Env):
         builder = WorldBuilder(world_params, seed)
         floor = Floor()
         builder.append(floor)
-        '''
-        # Walls
-        wallsize = 0.1
-        wall = Geom('box', (wallsize, self.floor_size, 0.5), name="wall1")
-        wall.mark_static()
-        floor.append(wall, placement_xy=(0, 0))
-        wall = Geom('box', (wallsize, self.floor_size, 0.5), name="wall2")
-        wall.mark_static()
-        floor.append(wall, placement_xy=(1, 0))
-        wall = Geom('box', (self.floor_size - wallsize*2, wallsize, 0.5), name="wall3")
-        wall.mark_static()
-        floor.append(wall, placement_xy=(1/2, 0))
-        wall = Geom('box', (self.floor_size - wallsize*2, wallsize, 0.5), name="wall4")
-        wall.mark_static()
-        floor.append(wall, placement_xy=(1/2, 1))
-        '''
+
         for module in self.modules:
             module.build_world_step(self, floor, self.floor_size)
 
@@ -184,7 +171,10 @@ def outside_quadrant_placement(grid, obj_size, metadata, random_state):
     ]
     return poses[random_state.randint(0, 3)]
 
-def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,grid_size=50,door_size=4,scenario='quadrant'):
+def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,
+             n_lidar_per_agent=8, visualize_lidar=True, compress_lidar_scale=None,
+             grid_size=50,door_size=4,scenario='quadrant'):
+
     env = Baseline(horizon=horizon, grid_size=grid_size,floor_size=floor_size, n_agents=n_agents, n_food=n_food)
 
     # Add random walls
@@ -198,8 +188,10 @@ def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,grid_size=50,door_
     agent_placement_fn = [outside_quadrant_placement] * n_agents
     env.add_module(Agents(n_agents,color=[np.array((25., 25.,25., 25.)) / 255] * n_agents))
     # Add food sites
-
     env.add_module(Food(n_food, placement_fn=quadrant_placement))
+    # Add lidar
+    if n_lidar_per_agent > 0 and visualize_lidar:
+        env.add_module(LidarSites(n_agents=n_agents, n_lidar_per_agent=n_lidar_per_agent))
     
     env.reset()
     keys_self = ['agent_qpos_qvel']
@@ -214,6 +206,11 @@ def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,grid_size=50,door_
     if n_food:
         env = FoodHealthWrapper(env)
         env = AlwaysEatWrapper(env, agent_idx_allowed=np.arange(n_agents))
+    if n_lidar_per_agent > 0:
+        env = Lidar(env, n_lidar_per_agent=n_lidar_per_agent, visualize_lidar=visualize_lidar,
+                    compress_lidar_scale=compress_lidar_scale)
+        keys_copy += ['lidar']
+        keys_external += ['lidar']
     env = SplitObservations(env, keys_self + keys_mask_self, keys_copy=keys_copy, keys_self_matrices=keys_mask_self)
     env = SelectKeysWrapper(env, keys_self=keys_self, \
                             keys_other=keys_external + keys_mask_self + keys_mask_external)
