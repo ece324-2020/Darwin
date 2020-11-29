@@ -22,16 +22,13 @@ EPISODE_COUNT = 100
 
 @click.command()
 @click.argument('env_name', required=False, default='mspac')
-@click.argument('env_only', required=False, default=False)
+@click.argument('env_only', required=False, default=False, type=bool)
 @click.argument('policy_name', required=False, default='q')
 @click.argument('steps', required=False, default=STEP_COUNT)
 @click.argument('episodes', required=False, default=EPISODE_COUNT)
 @click.argument('train', required=False, default=True)
-
-
-
-def main(env_name, env_only, policy_name, steps, episodes, train):
-
+@click.argument('show_render', required=False, default=True)
+def main(env_name, env_only, policy_name, steps, episodes, train, show_render):
     if env_only:
         examine_env(env_name, {},
             core_dir=worldgen_path(), envs_dir='examples', xmls_dir='xmls',
@@ -55,7 +52,7 @@ def main(env_name, env_only, policy_name, steps, episodes, train):
             # Train network
             # policy.train(episodes)
             print('Entering training')
-            viewer = TrainViewer(env, policies, steps)
+            viewer = TrainViewer(env, policies, policy_type=policy_name, steps=steps, show_render=show_render)
             viewer.run()
         else:
             # Implement viewer
