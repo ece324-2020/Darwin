@@ -55,6 +55,7 @@ class Food(EnvModule):
     def observation_step(self, env, sim):
         if self.curr_n_food > 0:
             obs = {'food_pos': sim.data.site_xpos[self.food_site_ids]}
+            #print(obs)
         else:
             obs = {'food_pos': np.zeros((0, 3))}
         return obs

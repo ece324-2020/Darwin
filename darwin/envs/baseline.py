@@ -172,7 +172,7 @@ def outside_quadrant_placement(grid, obj_size, metadata, random_state):
     return poses[random_state.randint(0, 3)]
 
 def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,
-             n_lidar_per_agent=10, visualize_lidar=True, compress_lidar_scale=None,
+             n_lidar_per_agent=8, visualize_lidar=True, compress_lidar_scale=None,
              grid_size=50,door_size=4,scenario='quadrant'):
 
     env = Baseline(horizon=horizon, grid_size=grid_size,floor_size=floor_size, n_agents=n_agents, n_food=n_food)

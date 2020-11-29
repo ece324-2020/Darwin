@@ -14,7 +14,6 @@ from viewer.env_viewer import EnvViewer
 from viewer.train_viewer import TrainViewer
 from viewer.policy_viewer import PolicyViewer
 from wrappers.multi_agent import JoinMultiAgentActions
-
 logger = logging.getLogger(__name__)
 
 STEP_COUNT = 1000
@@ -28,6 +27,9 @@ EPISODE_COUNT = 100
 @click.argument('steps', required=False, default=STEP_COUNT)
 @click.argument('episodes', required=False, default=EPISODE_COUNT)
 @click.argument('train', required=False, default=True)
+
+
+
 def main(env_name, env_only, policy_name, steps, episodes, train):
 
     if env_only:
@@ -60,15 +62,8 @@ def main(env_name, env_only, policy_name, steps, episodes, train):
             viewer = PolicyViewer(env, policies)
             viewer.run()
 
-    # enter_train_loop(env, policy, steps)
-
-    # env = load_env(env_name)
-    # observation = env.reset()
-    # for _ in range(steps):
-    #     env.render()
-    #     env.step(env.action_space.sample()) # take a random action
-    # env.close()
-    # policy = load_policy(policy_name, env)
+    
+    
 
     
 

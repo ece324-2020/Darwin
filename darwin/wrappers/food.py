@@ -27,7 +27,7 @@ class FoodHealthWrapper(gym.Wrapper):
             reward_scale_obs (bool): If true, adds the reward scale for the current
                 episode to food_obs
     '''
-    def __init__(self, env, eat_thresh=0.3, max_food_health=10, respawn_time=np.inf,
+    def __init__(self, env, eat_thresh=0.5, max_food_health=5, respawn_time=np.inf,
                  reward_scale=1.0, reward_scale_obs=False):
         super().__init__(env)
         self.env = env
@@ -124,7 +124,7 @@ class FoodHealthWrapper(gym.Wrapper):
 
         info['agents_eat'] = eat
         rew += food_rew * self.curr_reward_scale
-        print("food health: ", self.observation(obs)['food_health'])
+        #print("food health: ", self.observation(obs)['food_health'])
         done = True
         for h in self.observation(obs)['food_health']:
             if h[0] > 0.:

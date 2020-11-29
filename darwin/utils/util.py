@@ -12,3 +12,11 @@ def listdict2dictnp(l, keepdims=False):
         return {k: np.concatenate([d[k] for d in l]) for k in l[0]}
     else:
         return {k: np.array([d[k] for d in l]) for k in l[0]}
+
+def convert_obs(obs):
+    labels = ['observation_self','agent_qpos_qvel','lidar']
+    self_obs = obs[labels[0]]
+    agent_qpos_qvel = obs[labels[1]].reshape((2,8))
+    lidar = obs[labels[2]].reshape((2,8))
+    input_conv = np.stack((self_obs[0],agent_qpos_qvel[0],lidar[0],self_obs[1],agent_qpos_qvel[1],lidar[1]),axis=-1)
+    return input_conv
