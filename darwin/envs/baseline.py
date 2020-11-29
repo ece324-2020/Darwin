@@ -142,8 +142,13 @@ class Baseline(Env):
         # Cache constants for quicker lookup later
         self.agent_ids = np.array([sim.model.site_name2id(f'agents{i}') for i in range(self.n_agents)])
         self.food_ids = np.array([sim.model.site_name2id(f'food{i}') for i in range(self.n_food)])
-        
+
         return sim
+
+    def reset(self):
+        ob = super().reset()
+        return ob
+
 
 def quadrant_placement(grid, obj_size, metadata, random_state):
     '''

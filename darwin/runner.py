@@ -16,22 +16,19 @@ from viewer.policy_viewer import PolicyViewer
 from wrappers.multi_agent import JoinMultiAgentActions
 logger = logging.getLogger(__name__)
 
-STEP_COUNT = 1000
+STEP_COUNT = 300
 EPISODE_COUNT = 100
 
 
 @click.command()
-@click.argument('env_name', required=False, default='mspac')
-@click.argument('env_only', required=False, default=False)
-@click.argument('policy_name', required=False, default='q')
-@click.argument('steps', required=False, default=STEP_COUNT)
-@click.argument('episodes', required=False, default=EPISODE_COUNT)
-@click.argument('train', required=False, default=True)
-
-
-
-def main(env_name, env_only, policy_name, steps, episodes, train):
-
+@click.argument('env_name', required=True, default='mspac')
+@click.option('--env-only', required=False, default=False, type=bool)
+@click.option('--policy-name', required=False, default='dqn')
+@click.option('--steps', required=False, default=STEP_COUNT, type=int)
+@click.option('--episodes', required=False, default=EPISODE_COUNT, type=int)
+@click.option('--train', required=False, default=True, type=bool)
+@click.option('--show-render', required=False, default=True, type=bool)
+def main(env_name, env_only, policy_name, steps, episodes, train, show_render):
     if env_only:
         examine_env(env_name, {},
             core_dir=worldgen_path(), envs_dir='examples', xmls_dir='xmls',
@@ -55,11 +52,11 @@ def main(env_name, env_only, policy_name, steps, episodes, train):
             # Train network
             # policy.train(episodes)
             print('Entering training')
-            viewer = TrainViewer(env, policies, steps)
+            viewer = TrainViewer(env, policies, policy_type=policy_name, steps=steps, show_render=show_render)
             viewer.run()
         else:
             # Implement viewer
-            viewer = PolicyViewer(env, policies)
+            viewer = PolicyViewer(env, policies, policy_type=policy_name, steps=steps, show_render=show_render)
             viewer.run()
 
     

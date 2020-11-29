@@ -38,6 +38,7 @@ class FoodHealthWrapper(gym.Wrapper):
         self.eat_thresh = eat_thresh
         self.max_food_health = max_food_health
         self.respawn_time = respawn_time
+        self.on_reset_step = False
         self.reward_scale = reward_scale
         self.reward_scale_obs = reward_scale_obs
 
@@ -72,8 +73,12 @@ class FoodHealthWrapper(gym.Wrapper):
 
         # Reset food size
         self.respawn_counters = np.zeros((self.curr_n_food,))
+        self.on_reset_step = True
 
         self.curr_reward_scale = np.random.uniform(self.reward_scale[0], self.reward_scale[1])
+        print('after reset')
+        print('current food count', self.curr_n_food)
+        print('max food count', self.max_n_food)
 
         return self.observation(obs)
 
@@ -128,9 +133,14 @@ class FoodHealthWrapper(gym.Wrapper):
             size = np.maximum(0, size)
             self.unwrapped.sim.model.site_size[self.food_site_ids] = size
 
-            self.food_healths[self.respawn_counters == self.respawn_time] = self.max_food_health
-            #print(f"food_health:{self.food_healths}\n")
-            self.unwrapped.sim.model.site_size[self.food_site_ids[self.respawn_counters == self.respawn_time]] = self.max_food_size
+            if not self.respawn_time == np.inf:
+                self.food_healths[self.respawn_counters == self.respawn_time] = self.max_food_health
+                self.unwrapped.sim.model.site_size[self.food_site_ids[self.respawn_counters == self.respawn_time]] = self.max_food_size
+            elif self.on_reset_step:
+                self.food_healths[:] = self.max_food_health
+                self.unwrapped.sim.model.site_size[self.food_site_ids[:]] = self.max_food_size
+                self.on_reset_step = False
+
             self.respawn_counters[self.food_healths[:, 0] == 0] += 1
             self.respawn_counters[self.food_healths[:, 0] != 0] = 0
             for i in range(self.n_food):
