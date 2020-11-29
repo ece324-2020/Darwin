@@ -81,7 +81,11 @@ class TrainViewer(MjViewer):
         self.end_time = time.time() + self.duration
        
         self.saved_state = self.env.sim.get_state()
+        
+   
         input_conv = convert_obs(self.ob)
+        print(input_conv)
+
        
         #print(self.obs)
         while self.duration is None or time.time() < self.end_time:
@@ -153,7 +157,7 @@ class TrainViewer(MjViewer):
         self.total_rew = 0.0
         #self.seed += 1
         self.env.seed(self.seed)
-        self.env.sim.set_state(self.saved_state)
+        #self.env.sim.set_state(self.saved_state)
         self.ob = self.env.reset()
         
         for policy in self.policies:
