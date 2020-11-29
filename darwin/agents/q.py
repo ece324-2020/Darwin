@@ -44,7 +44,7 @@ class QAgent:
             sample = self.env.action_space.sample()
             new_sample = collections.OrderedDict()
             new_sample['action_movement'] = [sample['action_movement'][0]]
-            print("-------------------------Random sample selected---------------------------")
+            #print("-------------------------Random sample selected---------------------------")
             return map_sample_to_action(sample, is_gym_space=True)
 
         obs_key = tuple(obs['observation_self'][0])
