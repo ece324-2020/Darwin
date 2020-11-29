@@ -41,11 +41,15 @@ class QAgent:
     def act(self, obs):
         # # Force observation using epsilon-greedy
         if np.random.random() < EPSILON:
+           
             sample = self.env.action_space.sample()
+           
             new_sample = collections.OrderedDict()
             new_sample['action_movement'] = [sample['action_movement'][0]]
             #print("-------------------------Random sample selected---------------------------")
-            return map_sample_to_action(sample, is_gym_space=True)
+            #return map_sample_to_action(sample, is_gym_space=True)
+            #print(new_sample)
+            return new_sample
 
         obs_key = tuple(obs['observation_self'][0])
         action_val_pairs = [(a, self.Q[obs_key, a]) for a in self.actions]
@@ -66,3 +70,4 @@ def map_sample_to_action(sample, is_gym_space=False):
     else:
         new_sample['action_movement'] = [np.array(sample)]
     return new_sample
+

@@ -80,6 +80,7 @@ class TrainViewer(MjViewer):
         self.total_rew_avg = 0.0
         self.n_episodes = 0
         self.rewards = []
+
         for episode in range(self.episodes):
             print('#######################')
             print('Episode # {}'.format(episode))
@@ -127,6 +128,7 @@ class TrainViewer(MjViewer):
         self.total_rew = 0.0
         #self.seed += 1
         self.env.seed(self.seed)
+
         #self.env.unwrapped.sim.set_state(self.saved_state)
         self.ob = self.env.reset()
         
