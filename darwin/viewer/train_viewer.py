@@ -22,11 +22,7 @@ def splitobs(obs, keepdims=True):
 
 
 class TrainViewer(MjViewer):
-<<<<<<< HEAD
     def __init__(self, env, policies, policy_type='dq', show_render=True, seed=None, duration=None, episodes=EPISODES, steps=STEPS):
-=======
-    def __init__(self, env, policies, display_window=True, seed=None, duration=30, episodes=EPISODES, steps=STEPS):
->>>>>>> origin/main
         if seed is None:
             self.seed = env.seed()[0]
         else:
