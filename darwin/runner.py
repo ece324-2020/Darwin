@@ -23,7 +23,7 @@ EPISODE_COUNT = 100
 @click.command()
 @click.argument('env_name', required=False, default='mspac')
 @click.argument('env_only', required=False, default=False, type=bool)
-@click.argument('policy_name', required=False, default='q')
+@click.argument('policy_name', required=False, default='dqn')
 @click.argument('steps', required=False, default=STEP_COUNT)
 @click.argument('episodes', required=False, default=EPISODE_COUNT)
 @click.argument('train', required=False, default=True)
