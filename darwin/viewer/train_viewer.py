@@ -4,11 +4,11 @@ import numpy as np
 from operator import itemgetter
 import time
 from mujoco_py import const, MjViewer
-from utils.util import listdict2dictnp, convert_obs
+from utils.util import listdict2dictnp, split_obs, convert_obs
 
 
-STEPS = 300
-EPISODES = 40
+STEPS = 500
+EPISODES = 100
 
 
 def splitobs(obs, keepdims=True):
@@ -22,7 +22,7 @@ def splitobs(obs, keepdims=True):
 
 
 class TrainViewer(MjViewer):
-    def __init__(self, env, policies, policy_type='dqn', show_render=True, seed=None, duration=None, episodes=EPISODES, steps=STEPS):
+    def __init__(self, env, policies, policy_type='dqn', show_render=True, save_policy=False, seed=None, duration=None, episodes=EPISODES, steps=STEPS):
         if seed is None:
             self.seed = env.seed()[0]
         else:
@@ -33,6 +33,7 @@ class TrainViewer(MjViewer):
         self.policies = policies
         self.policy_type = policy_type
         self.show_render = show_render
+        self.save_policy = save_policy
         self.duration = duration
         self.steps = steps
         self.episodes = episodes
@@ -80,6 +81,7 @@ class TrainViewer(MjViewer):
         self.total_rew_avg = 0.0
         self.n_episodes = 0
         self.rewards = []
+        self.save_policy_model = False
 
         for episode in range(self.episodes):
             print('#######################')
@@ -87,12 +89,19 @@ class TrainViewer(MjViewer):
             print('#######################')
             self.ob = self.env.reset()
             for step in range(self.steps):
-                
+
+                print(f"Training DQN - Episode: {episode} Step: {step}")
+
+                if self.save_policy:
+                    if (episode == self.episodes - 1) and (step == self.steps - 1):
+                        self.save_policy_model = True
+
                 self.ob, rew, done, env_info = policy_types[self.policy_type](self.policies, 
                                                                                 self.env, 
                                                                                 self.ob, 
                                                                                 self.perform_render,
-                                                                                step)
+                                                                                step,
+                                                                                self.save_policy_model)
 
                 self.total_rew += rew
 
@@ -140,8 +149,8 @@ class TrainViewer(MjViewer):
 
 
 policy_types = {
-    'q': lambda p, e, o, r, s: qn_trainer(p, e, o, r, s),
-    'dqn': lambda p, e, o, r, s: dqn_trainer(p, e, o, r, s)
+    'q': lambda p, e, o, r, s, m: qn_trainer(p, e, o, r, s, m),
+    'dqn': lambda p, e, o, r, s, m: dqn_trainer(p, e, o, r, s, m)
 }
 
 
@@ -151,7 +160,7 @@ def qn_trainer(policies, env, ob, render_env, step):
         last_act = action
         last_ob = ob
     else:
-        ob = splitobs(ob, keepdims=False)
+        ob = split_obs(ob, keepdims=False)
         ob_policy_idx = np.split(np.arange(len(ob)), len(policies))
         last_ob = ob
         last_ob_idx = ob_policy_idx
@@ -182,22 +191,20 @@ def qn_trainer(policies, env, ob, render_env, step):
     return ob, rew, done, env_info
 
 
-def dqn_trainer(policies, env, ob, render_env, step):
+def dqn_trainer(policies, env, ob, render_env, step, save_policy_model):
     if len(policies) == 1:
-        action, _ = policies[0].act(ob, train=True)
+        action, _ = policies[0].act(ob, agent_id=0, train=True)
         last_ob = ob
     else:
         # ob = splitobs(ob, keepdims=False)
         # ob_policy_idx = np.split(np.arange(len(ob)), len(policies))
         last_ob = ob
-        # last_ob_idx = ob_policy_idx
         actions = []
         for i, policy in enumerate(policies):
             # inp = itemgetter(*ob_policy_idx[i])(ob)
             # inp = listdict2dictnp([inp] if ob_policy_idx[i].shape[0] == 1 else inp)
-            # ac = policy.act(inp, train=True)
 
-            ac = policy.act(ob, train=True)
+            ac = policy.act(ob, agent_id=i, train=True)
             actions.append(ac)
         action = listdict2dictnp(actions, keepdims=True)
 
@@ -208,7 +215,6 @@ def dqn_trainer(policies, env, ob, render_env, step):
 
     # Update policies and handle experience replay
     # Params (current observation, corresponding action, reward, next observation, finished)
-    print(f"Training DQN - Step: {step}")
     if len(policies) == 1:
         policies[0].update_replay_cache((last_ob, action, rew, ob, done))
         policies[0].train(step, agent_id=0)
@@ -223,9 +229,12 @@ def dqn_trainer(policies, env, ob, render_env, step):
             # inp = itemgetter(*tmp_ob_policy_idx[i])(tmp_ob)
             # inp = listdict2dictnp([inp] if tmp_ob_policy_idx[i].shape[0] == 1 else inp)
 
-            # policy.update_replay_cache((last_inp, a, r, inp, done))
-            policy.update_replay_cache((last_ob, a, r, tmp_ob, done))
+            policy.update_replay_cache((last_ob, a, r, tmp_ob, done), agent_id=i)
             policy.train(step, agent_id=i)
+
+    if save_policy_model:
+        for i, policy in enumerate(policies):
+            policy.save_policy(agent_id=i)
 
     return ob, rew, done, env_info
 

@@ -28,14 +28,17 @@ EPISODE_COUNT = 100
 @click.option('--episodes', required=False, default=EPISODE_COUNT, type=int)
 @click.option('--train', required=False, default=True, type=bool)
 @click.option('--show-render', required=False, default=True, type=bool)
-def main(env_name, env_only, policy_name, steps, episodes, train, show_render):
+@click.option('--save-policy', required=False, default=False, type=bool)
+   
+
+def main(env_name, env_only, policy_name, steps, episodes, train, show_render, save_policy):
     if env_only:
         examine_env(env_name, {},
             core_dir=worldgen_path(), envs_dir='examples', xmls_dir='xmls',
             env_viewer=EnvViewer)
 
     else:
-        env, args_remaining_env = load_env(env_name, core_dir=worldgen_path(),
+        env, _ = load_env(env_name, core_dir=worldgen_path(),
                                     envs_dir='examples', xmls_dir='xmls',
                                     return_args_remaining=True)
 
@@ -45,14 +48,14 @@ def main(env_name, env_only, policy_name, steps, episodes, train, show_render):
             raise Exception(f'Could not find environment based on pattern {env_name}')
 
         policies = []
-        for agent in range(env.metadata['n_agents']):
+        for _ in range(env.metadata['n_agents']):
             policies.append(load_policy(policy_name, env))
 
         if train:
             # Train network
             # policy.train(episodes)
             print('Entering training')
-            viewer = TrainViewer(env, policies, policy_type=policy_name, steps=steps, show_render=show_render)
+            viewer = TrainViewer(env, policies, policy_type=policy_name, steps=steps, show_render=show_render, save_policy=save_policy)
             viewer.run()
         else:
             # Implement viewer

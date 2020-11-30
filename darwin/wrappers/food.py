@@ -152,7 +152,7 @@ class FoodHealthWrapper(gym.Wrapper):
 
         info['agents_eat'] = eat
         rew += food_rew * self.curr_reward_scale
-        print("food health: ", self.observation(obs)['food_health'])
+        # print("food health: ", self.observation(obs)['food_health'])
         done = True
         for h in self.observation(obs)['food_health']:
             if h[0] > 0.:

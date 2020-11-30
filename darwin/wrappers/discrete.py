@@ -57,8 +57,6 @@ class DiscretizeActionWrapper(gym.ActionWrapper):
         #print(ac)
 
         # helper variables for indexing the discrete-to-continuous action map
-        print(ac.shape)
-        print(ac)
         agent_idxs = np.tile(np.arange(ac.shape[0])[:, None], ac.shape[1])
         ac_idxs = np.tile(np.arange(ac.shape[1]), ac.shape[0]).reshape(ac.shape)
 
