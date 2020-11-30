@@ -8,7 +8,7 @@ from utils.util import listdict2dictnp, convert_obs
 
 
 STEPS = 300
-EPISODES = 10
+EPISODES = 40
 
 
 def splitobs(obs, keepdims=True):
@@ -170,7 +170,7 @@ def qn_trainer(policies, env, ob, render_env, step):
         policy.update(last_ob, last_act, ob, done)
     else:                    
         tmp_ob = splitobs(ob, keepdims=False)
-        tmp_ob_policy_idx = np.split(np.arange(len(ob)), len(policies))
+        tmp_ob_policy_idx = np.split(np.arange(len(tmp_ob)), len(policies))
 
         for i, (a, r, policy) in enumerate(zip(actions, rew, policies)):
             last_inp = itemgetter(*last_ob_idx[i])(last_ob)
