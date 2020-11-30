@@ -1,8 +1,6 @@
 import numpy as np
 from mujoco_worldgen.util.types import store_args
 
-import sys
-sys.path.insert(1, '/Users/noods/Documents/engsci/y3/ece324/project/Darwin_project')
 from modules.module import EnvModule
 from modules.util import rejection_placement
 
