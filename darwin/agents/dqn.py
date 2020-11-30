@@ -23,8 +23,8 @@ LEARNING_RATE = 1e-3
 # Experience replay hyperparameters
 REPLAY_CACHE_SIZE = 3000
 MIN_REPLAY_CACHE_SIZE = 1000
-
-N_UPDATE_TARGET = 10
+ 
+N_UPDATE_TARGET = 450
 
 TRAINING_EPISODES = 1000
 
@@ -56,17 +56,19 @@ class DqnConv(nn.Module):
 class DqnLinear(nn.Module):
     def __init__(self, hidden_size):
         super(DqnLinear, self).__init__()
+        self.hidden_size = hidden_size
         self.fc1 = nn.Linear(8 * 3, hidden_size)
-        self.fc1_bn = nn.BatchNorm1d(hidden_size)
+        self.fc1_bn = nn.LayerNorm(hidden_size)
         self.fc2 = nn.Linear(hidden_size, 2 * hidden_size)
-        self.fc2_bn = nn.BatchNorm1d(2 * hidden_size)
+        self.fc2_bn = nn.LayerNorm(2 * hidden_size)
         self.fc3 = nn.Linear(2 * hidden_size, 4 * hidden_size)
-        self.fc3_bn = nn.BatchNorm1d(4 * hidden_size)
+        self.fc3_bn = nn.LayerNorm(4 * hidden_size)
         self.fc4 = nn.Linear(4 * hidden_size, 8 * hidden_size)
         self.fc5 = nn.Linear(8 * hidden_size, 11 * 11 * 11)
         self.relu = nn.ReLU()
 
     def forward(self, x):
+      
         x = self.relu(self.fc1_bn(self.fc1(x)))
         x = self.relu(self.fc2_bn(self.fc2(x)))
         x = self.relu(self.fc3_bn(self.fc3(x)))
@@ -79,7 +81,7 @@ class DQNAgent:
     def __init__(self,
                  env,
                  training=True,
-                 model_type='cnn',
+                 model_type='linear',
                  gamma=GAMMA,
                  epsilon=EPSILON,
                  batch_size=64, 
@@ -131,8 +133,8 @@ class DQNAgent:
 
         curr_states = np.array([convert_obs(tup[0], model_type=self.model_type) for tup in batch])
         curr_states = torch.from_numpy(curr_states)
+        
         curr_q_vectors = self.model(curr_states).detach().numpy()
-
         next_states = np.array([convert_obs(tup[3], model_type=self.model_type) for tup in batch])
         next_states = torch.from_numpy(next_states)
         next_q_vectors = self.target_model(next_states).detach().numpy()
@@ -147,6 +149,9 @@ class DQNAgent:
                 new_q = reward + (self.gamma * max_next_q)
 
             curr_q_vector = curr_q_vectors[i]
+            if (self.model_type == "linear"):
+                curr_q_vector = curr_q_vector[0]
+           
             curr_q_vector[action_to_idx(action)] = new_q
             label = curr_q_vector
 
@@ -183,14 +188,15 @@ class DQNAgent:
         else:
             self.replay_cache.append(experience)
 
-    def save_policy(self, agent_id, policy_name='baseline', model_type='cnn'):
-        torch.save(self.model, f"darwin/models/dqn_{policy_name}_{model_type}_agent{agent_id}.pt")
+    def save_policy(self, agent_id, policy_name='baseline', model_type='linear'):
+        torch.save(self.model, f"dqn_{policy_name}_{model_type}_agent{agent_id}.pt")
 
     def individual_obs(self, obs, agent_id):
         full_obs = split_obs(obs, keepdims=False)
         idx = np.split(np.arange(len(full_obs)), self.n_agents)
-
-        ob = itemgetter(*idx[agent_id](full_obs))
+       
+        ob = itemgetter(*idx[agent_id])(full_obs)
+   
         ob = listdict2dictnp([ob] if idx[agent_id].shape[0] == 1 else ob)
         return ob
 
@@ -207,10 +213,12 @@ class DQNAgent:
         
         obs = convert_obs(obs, model_type=self.model_type, eval=True)
         obs = torch.from_numpy(obs)
-
+        
         self.model.eval()
         with torch.no_grad():
+    
             q_vector = self.model(obs.double())
+        
         self.model.train()
         
         best_action_idx = np.argmax(np.array(q_vector))

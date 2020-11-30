@@ -36,10 +36,12 @@ def convert_obs(obs, model_type, n_agents=2, eval=False):
         return input_conv
 
     elif model_type == 'linear':
-        self_obs = np.array(obs[labels[0]])
-        agent_qpos_qvel = np.array(obs[labels[1]])
-        lidar = np.array(obs[labels[2]])
-        input_linear = np.concatenate(self_obs, agent_qpos_qvel, lidar)
+        self_obs = np.array(obs[labels[0]]).reshape((1,8))
+        agent_qpos_qvel = np.array(obs[labels[1]]).reshape((1,8))
+        lidar = np.array(obs[labels[2]]).reshape((1,8))
+      
+        input_linear = np.concatenate((self_obs, agent_qpos_qvel, lidar)).reshape((1,24))
+        
         return input_linear
 
     else:
