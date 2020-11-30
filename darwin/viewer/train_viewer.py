@@ -7,8 +7,18 @@ from mujoco_py import const, MjViewer
 from utils.util import listdict2dictnp, split_obs, convert_obs
 
 
-STEPS = 500
+STEPS = 300
 EPISODES = 100
+
+
+def splitobs(obs, keepdims=True):
+    '''
+        Split obs into list of single agent obs.
+        Args:
+            obs: dictionary of numpy arrays where first dim in each array is agent dim
+    '''
+    n_agents = obs[list(obs.keys())[0]].shape[0]
+    return [{k: v[[i]] if keepdims else v[i] for k, v in obs.items()} for i in range(n_agents)]
 
 
 class TrainViewer(MjViewer):
@@ -32,6 +42,7 @@ class TrainViewer(MjViewer):
         self.total_rew = 0.
         self.ob = env.reset()
         self.ob_copy = self.ob
+
         self.saved_state = self.env.unwrapped.sim.get_state()
         # for policy in self.policies:
         #     policy.reset()
@@ -71,6 +82,7 @@ class TrainViewer(MjViewer):
         self.total_rew_avg = 0.0
         self.n_episodes = 0
         self.rewards = []
+
         self.save_policy_model = False
 
         for episode in range(self.episodes):
@@ -168,8 +180,8 @@ def qn_trainer(policies, env, ob, render_env, step):
     if len(policies) == 1:
         policy.update(last_ob, last_act, ob, done)
     else:                    
-        tmp_ob = split_obs(ob, keepdims=False)
-        tmp_ob_policy_idx = np.split(np.arange(len(ob)), len(policies))
+        tmp_ob = splitobs(ob, keepdims=False)
+        tmp_ob_policy_idx = np.split(np.arange(len(tmp_ob)), len(policies))
 
         for i, (a, r, policy) in enumerate(zip(actions, rew, policies)):
             last_inp = itemgetter(*last_ob_idx[i])(last_ob)

@@ -23,7 +23,6 @@ LEARNING_RATE = 1e-3
 # Experience replay hyperparameters
 REPLAY_CACHE_SIZE = 3000
 MIN_REPLAY_CACHE_SIZE = 1000
- 
 N_UPDATE_TARGET = 450
 
 TRAINING_EPISODES = 1000
@@ -89,7 +88,7 @@ class DQNAgent:
                  hidden_size=128, 
                  replay_cache_size=REPLAY_CACHE_SIZE, 
                  min_replay_cache_size=MIN_REPLAY_CACHE_SIZE,
-                 update_target_every=10
+                 update_target_every=N_UPDATE_TARGET
                  ):
         self.env = env
         self.n_agents = self.env.metadata['n_agents']
@@ -110,7 +109,7 @@ class DQNAgent:
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
             self.loss_fn = nn.MSELoss()
 
-            self.target_model = DqnConv(self.n_agents, self.hidden_size)
+            self.target_model = DqnConv(self.n_agents, 2 * self.hidden_size)
             self.target_model = self.target_model.double()
 
         elif self.model_type == 'linear':
@@ -172,7 +171,8 @@ class DQNAgent:
 
         print(f"Agent {agent_id} - Training Loss: {loss.item()}")
 
-        if step % self.update_target_every == 0:
+        # if step % self.update_target_every == 0:
+        if step == 0:
             model_state_dict = self.model.state_dict()
             target_model_state_dict = self.target_model.state_dict()
             for name, _ in target_model_state_dict.items():

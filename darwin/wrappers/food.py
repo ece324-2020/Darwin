@@ -42,7 +42,7 @@ class FoodHealthWrapper(gym.Wrapper):
         self.reward_scale = reward_scale
         self.reward_scale_obs = reward_scale_obs
 
-        self.n_agents = self.metadata['n_agents']
+        self.n_agents = self.env.metadata['n_agents']
 
         if type(reward_scale) not in [list, tuple, np.ndarray]:
             self.reward_scale = [reward_scale, reward_scale]
@@ -76,10 +76,6 @@ class FoodHealthWrapper(gym.Wrapper):
         self.on_reset_step = True
 
         self.curr_reward_scale = np.random.uniform(self.reward_scale[0], self.reward_scale[1])
-        # print('after reset')
-        # print('current food count', self.curr_n_food)
-        # print('max food count', self.max_n_food)
-
         return self.observation(obs)
 
     def observation(self, obs):

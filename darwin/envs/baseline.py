@@ -3,7 +3,7 @@ import gym
 from gym.spaces import Box, Dict
 
 from mujoco_worldgen import Floor, WorldBuilder, Geom, ObjFromXML, WorldParams, Env
-from modules.wall import RandomWalls,WallScenarios
+from modules.wall import RandomWalls,WallScenarios,Wall
 import sys
 sys.path.insert(1, '/Users/eric/Darwin_project')
 
@@ -191,7 +191,7 @@ def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,
     env.add_module(WallScenarios(grid_size=grid_size,door_size=door_size,scenario=scenario))
     # Add agents
     agent_placement_fn = [outside_quadrant_placement] * n_agents
-    env.add_module(Agents(n_agents,color=[np.array((25., 25.,25., 25.)) / 255] * n_agents))
+    env.add_module(Agents(n_agents,color=[np.array((25., 25.,25., 25.)) / 255] * n_agents,placement_fn=agent_placement_fn))
     # Add food sites
     env.add_module(Food(n_food, placement_fn=quadrant_placement))
     # Add lidar
