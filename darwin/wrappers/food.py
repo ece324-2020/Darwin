@@ -76,9 +76,9 @@ class FoodHealthWrapper(gym.Wrapper):
         self.on_reset_step = True
 
         self.curr_reward_scale = np.random.uniform(self.reward_scale[0], self.reward_scale[1])
-        print('after reset')
-        print('current food count', self.curr_n_food)
-        print('max food count', self.max_n_food)
+        # print('after reset')
+        # print('current food count', self.curr_n_food)
+        # print('max food count', self.max_n_food)
 
         return self.observation(obs)
 
@@ -156,7 +156,7 @@ class FoodHealthWrapper(gym.Wrapper):
 
         info['agents_eat'] = eat
         rew += food_rew * self.curr_reward_scale
-        print("food health: ", self.observation(obs)['food_health'])
+        # print("food health: ", self.observation(obs)['food_health'])
         done = True
         for h in self.observation(obs)['food_health']:
             if h[0] > 0.:
