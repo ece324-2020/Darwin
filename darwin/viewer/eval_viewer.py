@@ -7,7 +7,7 @@ import torch
 
 from mujoco_py import const, MjViewer
 
-from utils.util import listdict2dictnp, split_obs, convert_obs, idx_to_action
+from utils.util import listdict2dictnp, split_obs, convert_obs, extract_agent_obs, idx_to_action
 
 STEPS = 100
 EPISODES = 10
@@ -22,7 +22,7 @@ class EvalViewer(MjViewer):
         seed - environment seed to view
         duration - time in seconds to run the policy, run forever if duration=None
     '''
-    def __init__(self, env, policy_path, policy_type='dqn', model_type='cnn', show_render=True, seed=None, duration=None, episodes=EPISODES, steps=STEPS):
+    def __init__(self, env, policy_path, policy_type='dqn', model_type='linear', show_render=True, seed=None, duration=None, episodes=EPISODES, steps=STEPS):
         if seed is None:
             self.seed = env.seed()[0]
         else:
@@ -93,8 +93,15 @@ class EvalViewer(MjViewer):
             while not done and step < self.steps:
                 actions = []
                 for i, model in enumerate(self.models):
-                    ob = convert_obs(self.ob, self.model_type, n_agents=len(self.models), eval=True)
+                    if self.model_type == 'linear':
+                        ob = extract_agent_obs(self.ob, agent_id=i, n_agents=len(self.models))
+                        ob = convert_obs(ob, self.model_type, n_agents=len(self.models), eval=True)
+                    else:    
+                        ob = convert_obs(self.ob, self.model_type, n_agents=len(self.models), eval=True)
+
                     ob = torch.from_numpy(ob)
+
+                    model.eval()
                     with torch.no_grad():
                         q = model(ob.double())
 

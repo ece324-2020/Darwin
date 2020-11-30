@@ -58,8 +58,8 @@ def main(env_name, env_only, policy_name, steps, episodes, train, show_render, s
             viewer.run()
         else:
             # Inference with pre-built model
-            policy_path = ["darwin/models/dqn_baseline_cnn_agent0.pt",
-                           "darwin/models/dqn_baseline_cnn_agent1.pt"]
+            policy_path = ["darwin/models/dqn_baseline_linear_agent0.pt",
+                           "darwin/models/dqn_baseline_linear_agent1.pt"]
             viewer = EvalViewer(env, policy_path=policy_path, policy_type=policy_name, steps=steps, show_render=show_render)
             viewer.run()
 

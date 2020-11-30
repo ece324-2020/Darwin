@@ -1,4 +1,5 @@
 import numpy as np
+from operator import itemgetter
 
 def listdict2dictnp(l, keepdims=False):
     '''
@@ -46,6 +47,13 @@ def convert_obs(obs, model_type, n_agents=2, eval=False):
 
     else:
         raise ValueError(f"Model type {model_type} is not supported.")
+
+def extract_agent_obs(obs, agent_id, n_agents):
+    full_obs = split_obs(obs, keepdims=False)
+    idx = np.split(np.arange(len(full_obs)), n_agents)
+    ob = itemgetter(*idx[agent_id])(full_obs)
+    ob = listdict2dictnp([ob] if idx[agent_id].shape[0] == 1 else ob)
+    return ob
 
 def idx_to_action(idx):
     action = [None] * 3
