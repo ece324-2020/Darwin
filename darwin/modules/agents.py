@@ -39,13 +39,15 @@ class Agents(EnvModule):
                 pos, pos_grid = rejection_placement(env, _placement_fn, floor_size, obj_size)
                 if pos is not None:
                     floor.append(obj, placement_xy=pos)
+                    obj.mark(f"agents{i}")
                     # store spawn position in metadata. This allows sampling subsequent agents
                     # close to previous agents
                     env.metadata[f"agent{i}_initpos"] = pos_grid
                 else:
                     successful_placement = False
-            floor.append(obj)
-            obj.mark(f"agents{i}")
+            else:
+                floor.append(obj)
+                obj.mark(f"agents{i}")
         
         return successful_placement
 
@@ -72,3 +74,4 @@ class Agents(EnvModule):
             'agent_pos': agent_qpos[:, :3]}
 
         return obs
+

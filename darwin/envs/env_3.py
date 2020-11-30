@@ -6,7 +6,6 @@ from mujoco_worldgen import Floor, WorldBuilder, Geom, ObjFromXML, WorldParams, 
 from modules.wall import RandomWalls,WallScenarios,Wall
 import sys
 sys.path.insert(1, '/Users/eric/Darwin_project')
-
 from wrappers.food import FoodHealthWrapper, AlwaysEatWrapper
 from wrappers.multi_agent import (SplitMultiAgentActions, SplitObservations,
                                     SelectKeysWrapper)
@@ -99,6 +98,7 @@ class Baseline(Env):
         self.n_agents = n_agents
         self.metadata = {}
         self.metadata['n_agents'] = n_agents
+        self.grid_size = grid_size
         self.n_food = n_food
         self.horizon = horizon
         self.n_substeps = n_substeps
@@ -142,13 +142,8 @@ class Baseline(Env):
         # Cache constants for quicker lookup later
         self.agent_ids = np.array([sim.model.site_name2id(f'agents{i}') for i in range(self.n_agents)])
         self.food_ids = np.array([sim.model.site_name2id(f'food{i}') for i in range(self.n_food)])
-
+        
         return sim
-
-    def reset(self):
-        ob = super().reset()
-        return ob
-
 
 def quadrant_placement(grid, obj_size, metadata, random_state):
     '''
@@ -176,24 +171,23 @@ def outside_quadrant_placement(grid, obj_size, metadata, random_state):
     ]
     return poses[random_state.randint(0, 3)]
 
-def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,
+def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,n_rooms=4,
              n_lidar_per_agent=8, visualize_lidar=True, compress_lidar_scale=None,
-             grid_size=50,door_size=4,scenario='quadrant'):
+             grid_size=50,door_size=4,scenario='randomwalls'):
 
     env = Baseline(horizon=horizon, grid_size=grid_size,floor_size=floor_size, n_agents=n_agents, n_food=n_food)
 
-    # Add random walls
-    '''
-    env.add_module(RandomWalls(grid_size=30, num_rooms=4, min_room_size=6, door_size=2))
-    '''
+   
 
-    # Add quadrant walls
-    env.add_module(WallScenarios(grid_size=grid_size,door_size=door_size,scenario=scenario))
+
+    # Add random walls
+    env.add_module(RandomWalls(grid_size=grid_size, num_rooms=n_rooms,min_room_size=10,door_size=door_size))
+            
     # Add agents
     agent_placement_fn = [outside_quadrant_placement] * n_agents
-    env.add_module(Agents(n_agents,color=[np.array((25., 25.,25., 25.)) / 255] * n_agents,placement_fn=agent_placement_fn))
+    env.add_module(Agents(n_agents,color=[np.array((25., 25.,25., 25.)) / 255] * n_agents,placement_fn=uniform_placement))
     # Add food sites
-    env.add_module(Food(n_food, placement_fn=quadrant_placement))
+    env.add_module(Food(n_food, placement_fn=uniform_placement))
     # Add lidar
     if n_lidar_per_agent > 0 and visualize_lidar:
         env.add_module(LidarSites(n_agents=n_agents, n_lidar_per_agent=n_lidar_per_agent))

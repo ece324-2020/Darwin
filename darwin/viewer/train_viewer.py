@@ -32,6 +32,7 @@ class TrainViewer(MjViewer):
         self.total_rew = 0.
         self.ob = env.reset()
         self.ob_copy = self.ob
+
         self.saved_state = self.env.unwrapped.sim.get_state()
         # for policy in self.policies:
         #     policy.reset()
@@ -71,6 +72,7 @@ class TrainViewer(MjViewer):
         self.total_rew_avg = 0.0
         self.n_episodes = 0
         self.rewards = []
+
         self.save_policy_model = False
 
         for episode in range(self.episodes):
