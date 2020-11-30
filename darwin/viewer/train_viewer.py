@@ -7,7 +7,7 @@ from mujoco_py import const, MjViewer
 from utils.util import listdict2dictnp, split_obs, convert_obs
 
 
-STEPS = 500
+STEPS = 300
 EPISODES = 100
 
 
@@ -85,7 +85,7 @@ class TrainViewer(MjViewer):
                 print(f"Training DQN - Episode: {episode} Step: {step}")
 
                 if self.save_policy:
-                    if (episode == self.episodes - 1) and (step == self.steps - 1):
+                    if (episode == self.episodes - 1) and (step == 0):
                         self.save_policy_model = True
 
                 self.ob, rew, done, env_info = policy_types[self.policy_type](self.policies, 
