@@ -12,7 +12,7 @@ from utils.loader import load_policy
 from utils.training import enter_train_loop
 from viewer.env_viewer import EnvViewer
 from viewer.train_viewer import TrainViewer
-from viewer.policy_viewer import PolicyViewer
+from viewer.eval_viewer import EvalViewer
 from wrappers.multi_agent import JoinMultiAgentActions
 logger = logging.getLogger(__name__)
 
@@ -53,13 +53,14 @@ def main(env_name, env_only, policy_name, steps, episodes, train, show_render, s
 
         if train:
             # Train network
-            # policy.train(episodes)
             print('Entering training')
             viewer = TrainViewer(env, policies, policy_type=policy_name, steps=steps, show_render=show_render, save_policy=save_policy)
             viewer.run()
         else:
-            # Implement viewer
-            viewer = PolicyViewer(env, policies, policy_type=policy_name, steps=steps, show_render=show_render)
+            # Inference with pre-built model
+            policy_path = ["darwin/models/dqn_baseline_cnn_agent0.pt",
+                           "darwin/models/dqn_baseline_cnn_agent1.pt"]
+            viewer = EvalViewer(env, policy_path=policy_path, policy_type=policy_name, steps=steps, show_render=show_render)
             viewer.run()
 
     
