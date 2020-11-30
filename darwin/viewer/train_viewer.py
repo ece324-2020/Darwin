@@ -39,6 +39,7 @@ class TrainViewer(MjViewer):
 
         self.total_rew = 0.
         self.ob = env.reset()
+        self.ob_copy = self.ob
 
         for policy in self.policies:
             policy.reset()
@@ -81,7 +82,8 @@ class TrainViewer(MjViewer):
         self.end_time = time.time() + self.duration
        
         self.saved_state = self.env.sim.get_state()
-        
+        #print("old_state: ",self.saved_state)
+        #print("old_obs: ",self.ob)
    
         input_conv = convert_obs(self.ob)
         print(input_conv)
@@ -132,7 +134,10 @@ class TrainViewer(MjViewer):
             if done or env_info.get('discard_episode', False):
                 print('ALL FOODS ARE GONE.')
                 self.reset_increment()
-                print(self.env.sim.get_state())
+                self.env.sim.set_state(self.saved_state)
+                self.ob = self.ob_copy
+                #print("new_state:",self.env.sim.get_state())
+                #print("new_obs:",self.ob)
 
             if self.display_window:
                 self.add_overlay(const.GRID_TOPRIGHT, "Reset env; (current seed: {})".format(self.seed), "N - next / P - previous ")
