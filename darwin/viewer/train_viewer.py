@@ -11,6 +11,16 @@ STEPS = 300
 EPISODES = 100
 
 
+def splitobs(obs, keepdims=True):
+    '''
+        Split obs into list of single agent obs.
+        Args:
+            obs: dictionary of numpy arrays where first dim in each array is agent dim
+    '''
+    n_agents = obs[list(obs.keys())[0]].shape[0]
+    return [{k: v[[i]] if keepdims else v[i] for k, v in obs.items()} for i in range(n_agents)]
+
+
 class TrainViewer(MjViewer):
     def __init__(self, env, policies, policy_type='dqn', show_render=True, save_policy=False, seed=None, duration=None, episodes=EPISODES, steps=STEPS):
         if seed is None:
@@ -170,8 +180,8 @@ def qn_trainer(policies, env, ob, render_env, step):
     if len(policies) == 1:
         policy.update(last_ob, last_act, ob, done)
     else:                    
-        tmp_ob = split_obs(ob, keepdims=False)
-        tmp_ob_policy_idx = np.split(np.arange(len(ob)), len(policies))
+        tmp_ob = splitobs(ob, keepdims=False)
+        tmp_ob_policy_idx = np.split(np.arange(len(tmp_ob)), len(policies))
 
         for i, (a, r, policy) in enumerate(zip(actions, rew, policies)):
             last_inp = itemgetter(*last_ob_idx[i])(last_ob)
