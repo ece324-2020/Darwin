@@ -9,6 +9,8 @@ from mujoco_worldgen.util.types import store_args
 
 from utils.util import listdict2dictnp
 
+STEPS = 300
+
 
 def splitobs(obs, keepdims=True):
     '''
@@ -30,23 +32,28 @@ class PolicyViewer(MjViewer):
         duration - time in seconds to run the policy, run forever if duration=None
     '''
     @store_args
-    def __init__(self, env, policies, display_window=True, seed=None, duration=None):
+    def __init__(self, env, policies, policy_type='dqn', show_render=True, seed=None, duration=None, steps=STEPS):
         if seed is None:
             self.seed = env.seed()[0]
         else:
             self.seed = seed
             env.seed(seed)
-        self.total_rew = 0.0
+
+        self.total_rew = 0.
         self.ob = env.reset()
-        for policy in self.policies:
-            policy.reset()
+        self.ob_copy = self.ob
+        self.saved_state = self.env.unwrapped.sim.get_state()
+        # for policy in self.policies:
+        #     policy.reset()
+
         assert env.metadata['n_agents'] % len(policies) == 0
         if hasattr(env, "reset_goal"):
             self.goal = env.reset_goal()
         super().__init__(self.env.unwrapped.sim)
+
         # TO DO: remove circular dependency on viewer object. It looks fishy.
         self.env.unwrapped.viewer = self
-        if self.render and self.display_window:
+        if self.render and self.show_render:
             self.env.render()
 
     def key_callback(self, window, key, scancode, action, mods):
@@ -70,49 +77,76 @@ class PolicyViewer(MjViewer):
             self.update_sim(self.env.unwrapped.sim)
 
     def run(self):
-        if self.duration is not None:
-            self.end_time = time.time() + self.duration
-        self.total_rew_avg = 0.0
-        self.n_episodes = 0
-        while self.duration is None or time.time() < self.end_time:
-            if len(self.policies) == 1:
-                action, _ = self.policies[0].act(self.ob)
-            else:
-                self.ob = splitobs(self.ob, keepdims=False)
-                ob_policy_idx = np.split(np.arange(len(self.ob)), len(self.policies))
-                actions = []
-                for i, policy in enumerate(self.policies):
-                    inp = itemgetter(*ob_policy_idx[i])(self.ob)
-                    inp = listdict2dictnp([inp] if ob_policy_idx[i].shape[0] == 1 else inp)
-                    ac, info = policy.act(inp)
-                    actions.append(ac)
-                action = listdict2dictnp(actions, keepdims=True)
+        done = False
+        step = 1
+        while not done and step < self.steps:
+            self.ob, rew, done, env_info = policy_types[self.policy_type](self.policies,
+                                                                            self.env,
+                                                                            self.ob,
+                                                                            self.perform_render,
+                                                                            step)
 
-            self.ob, rew, done, env_info = self.env.step(action)
             self.total_rew += rew
 
             if done or env_info.get('discard_episode', False):
-                self.reset_increment()
+                self.env.unwrapped.sim.set_state(self.saved_state)
+                break
 
-            if self.display_window:
-                self.add_overlay(const.GRID_TOPRIGHT, "Reset env; (current seed: {})".format(self.seed), "N - next / P - previous ")
-                self.add_overlay(const.GRID_TOPRIGHT, "Reward", str(self.total_rew))
-                if hasattr(self.env.unwrapped, "viewer_stats"):
-                    for k, v in self.env.unwrapped.viewer_stats.items():
-                        self.add_overlay(const.GRID_TOPRIGHT, k, str(v))
+            step += 1
+            self.perform_render()
 
-                self.env.render()
+        print('Evaluation finished at step {}, total reward: {}'.format(step, self.total_rew))
 
-    def reset_increment(self):
-        self.total_rew_avg = (self.n_episodes * self.total_rew_avg + self.total_rew) / (self.n_episodes + 1)
-        self.n_episodes += 1
-        print(f"Reward: {self.total_rew} (rolling average: {self.total_rew_avg})")
-        self.total_rew = 0.0
-        self.seed += 1
-        self.env.seed(self.seed)
-        self.ob = self.env.reset()
-        for policy in self.policies:
-            policy.reset()
-        if hasattr(self.env, "reset_goal"):
-            self.goal = self.env.reset_goal()
-        self.update_sim(self.env.unwrapped.sim)
+    
+    def perform_render(self):
+        if self.show_render:
+            self.add_overlay(const.GRID_TOPRIGHT, "Reset env; (current seed: {})".format(self.seed), "N - next / P - previous ")
+            self.add_overlay(const.GRID_TOPRIGHT, "Reward", str(self.total_rew))
+            if hasattr(self.env.unwrapped, "viewer_stats"):
+                for k, v in self.env.unwrapped.viewer_stats.items():
+                    self.add_overlay(const.GRID_TOPRIGHT, k, str(v))
+
+            self.env.render()
+
+
+policy_types = {
+    'q': lambda p, e, o, r, s: qn_eval(p, e, o, r, s),
+    'dqn': lambda p, e, o, r, s: dqn_eval(p, e, o, r, s)
+}
+
+
+def qn_eval(policies, env, ob, render_env, step):
+    if len(policies) == 1:
+        action = policies[0].act(ob)
+    else:
+        ob = splitobs(ob, keepdims=False)
+        ob_policy_idx = np.split(np.arange(len(ob)), len(policies))
+        actions = []
+        for i, policy in enumerate(policies):
+            inp = itemgetter(*ob_policy_idx[i])(ob)
+            inp = listdict2dictnp([inp] if ob_policy_idx[i].shape[0] == 1 else inp)
+            ac = policy.act(inp)
+            actions.append(ac)
+        action = listdict2dictnp(actions, keepdims=True)
+
+    ob, rew, done, env_info = env.step(action)
+    return ob, rew, done, env_info
+
+
+def dqn_eval(policies, env, ob, render_env, step):
+    if len(policies) == 1:
+        action, _ = policies[0].act(ob, train=True)
+    else:
+        actions = []
+        for i, policy in enumerate(policies):
+            # inp = itemgetter(*ob_policy_idx[i])(ob)
+            # inp = listdict2dictnp([inp] if ob_policy_idx[i].shape[0] == 1 else inp)
+            # ac = policy.act(inp, train=True)
+
+            ac = policy.act(ob, train=True)
+            actions.append(ac)
+        action = listdict2dictnp(actions, keepdims=True)
+
+    ob, rew, done, env_info = env.step(action)
+    return ob, rew, done, env_info
+
