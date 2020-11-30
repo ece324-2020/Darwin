@@ -47,9 +47,9 @@ class QAgent:
             new_sample = collections.OrderedDict()
             new_sample['action_movement'] = [sample['action_movement'][0]]
             #print("-------------------------Random sample selected---------------------------")
-            #return map_sample_to_action(sample, is_gym_space=True)
+            return map_sample_to_action(sample, is_gym_space=True)
             #print(new_sample)
-            return new_sample
+            # return new_sample
 
         obs_key = tuple(obs['observation_self'][0])
         action_val_pairs = [(a, self.Q[obs_key, a]) for a in self.actions]
