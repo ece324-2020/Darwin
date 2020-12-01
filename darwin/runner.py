@@ -54,19 +54,14 @@ def main(env_name, env_only, policy_name, steps, episodes, train, show_render, s
         if train:
             # Train network
             print('Entering training')
-            viewer = TrainViewer(env, policies, policy_type=policy_name, steps=steps, show_render=show_render, save_policy=save_policy)
+            viewer = TrainViewer(env, policies, policy_type=policy_name, steps=steps, episodes=episodes, show_render=show_render, save_policy=save_policy)
             viewer.run()
         else:
             # Inference with pre-built model
-            policy_path = ["darwin/models/dqn_baseline_linear_agent0.pt",
-                           "darwin/models/dqn_baseline_linear_agent1.pt"]
-            viewer = EvalViewer(env, policy_path=policy_path, policy_type=policy_name, steps=steps, show_render=show_render)
+            policy_path = ["darwin/models/dqn_sleep_cnn_agent0.pt",
+                           "darwin/models/dqn_sleep_cnn_agent1.pt"]
+            viewer = EvalViewer(env, policy_path=policy_path, policy_type=policy_name, steps=steps, episodes=episodes, show_render=show_render)
             viewer.run()
-
-    
-    
-
-    
 
 
 if __name__ == "__main__":

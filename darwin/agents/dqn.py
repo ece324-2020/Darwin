@@ -80,7 +80,7 @@ class DQNAgent:
     def __init__(self,
                  env,
                  training=True,
-                 model_type='linear',
+                 model_type='cnn',
                  gamma=GAMMA,
                  epsilon=EPSILON,
                  batch_size=64, 
@@ -188,7 +188,7 @@ class DQNAgent:
         else:
             self.replay_cache.append(experience)
 
-    def save_policy(self, agent_id, policy_name='baseline', model_type='linear'):
+    def save_policy(self, agent_id, policy_name='sleep', model_type='linear'):
         torch.save(self.model, f"dqn_{policy_name}_{model_type}_agent{agent_id}.pt")
 
     def individual_obs(self, obs, agent_id):
