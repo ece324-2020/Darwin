@@ -156,7 +156,7 @@ policy_types = {
 }
 
 
-def qn_trainer(policies, env, ob, render_env, step):
+def qn_trainer(policies, env, ob, render_env, step, save_policy_model):
     if len(policies) == 1:
         action = policies[0].act(ob)
         last_act = action

@@ -4,8 +4,6 @@ from gym.spaces import Box, Dict
 
 from mujoco_worldgen import Floor, WorldBuilder, Geom, ObjFromXML, WorldParams, Env
 from modules.wall import RandomWalls,WallScenarios,Wall
-import sys
-sys.path.insert(1, '/Users/eric/Darwin_project')
 
 from wrappers.food import FoodHealthWrapper, AlwaysEatWrapper
 from wrappers.multi_agent import (SplitMultiAgentActions, SplitObservations,
