@@ -5,7 +5,7 @@ from gym.spaces import Box, Dict
 from mujoco_worldgen import Floor, WorldBuilder, Geom, ObjFromXML, WorldParams, Env
 from modules.wall import RandomWalls,WallScenarios,Wall
 
-from wrappers.food import FoodHealthWrapper, AlwaysEatWrapper
+from wrappers.food import SimpleFoodHealthWrapper, AlwaysEatWrapper
 from wrappers.multi_agent import (SplitMultiAgentActions, SplitObservations,
                                     SelectKeysWrapper)
 from wrappers.lidar import Lidar
@@ -52,22 +52,23 @@ class TrackStatWrapper(gym.Wrapper):
         return obs, rew, done, info
 
 
-class BaselineRewardWrapper(gym.Wrapper):
-    def __init__(self, env, n_agents):
+class BaselineRewardWrapper(gym.RewardWrapper):
+    def __init__(self, env):
         super().__init__(env)
         self.n_agents = self.unwrapped.n_agents
+
+    def reward(self, rew):
+        return np.zeros((self.n_agents,)) + rew
+        # obs, rew, done, info = self.env.step(action)
+
+        # this_rew = np.subtract(np.ones((self.n_agents,)), 1.01)
         
-        self.metadata['n_agents'] = self.n_agents
+        # print('THIS REWARD', this_rew)
+        # print('REWARD BEFORE', rew)
 
-        self.unwrapped.agent_names = [f'agent{i}' for i in range(self.n_agents)]
-
-    def step(self, action):
-        obs, rew, done, info = self.env.step(action)
-
-        this_rew = np.subtract(np.ones((self.n_agents,)), 1.01)
-        
-        rew += this_rew
-        return obs, rew, done, info
+        # rew += this_rew
+        # print('REWARD AFTER', rew)
+        # return obs, rew, done, info
 
 
 
@@ -204,10 +205,10 @@ def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,
     keys_copy = []
     keys_mask_external = []
     env = SplitMultiAgentActions(env)
-    env = BaselineRewardWrapper(env, n_agents=n_agents)
     env = DiscretizeActionWrapper(env, 'action_movement')
+    env = BaselineRewardWrapper(env)
     if n_food:
-        env = FoodHealthWrapper(env)
+        env = SimpleFoodHealthWrapper(env)
         env = AlwaysEatWrapper(env, agent_idx_allowed=np.arange(n_agents))
     if n_lidar_per_agent > 0:
         env = Lidar(env, n_lidar_per_agent=n_lidar_per_agent, visualize_lidar=visualize_lidar,

@@ -1,3 +1,3 @@
 # Project Darwin
 
-Survival-based simulation using multi-agent reinforcement learning.
+Survival-based multi-agent reinforcement learning exploration
