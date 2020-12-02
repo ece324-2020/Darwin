@@ -7,8 +7,8 @@ from mujoco_py import const, MjViewer
 from utils.util import listdict2dictnp, split_obs, convert_obs
 
 
-STEPS = 300
-EPISODES = 100
+STEPS = 1000
+EPISODES = 50
 
 
 def splitobs(obs, keepdims=True):
@@ -211,6 +211,7 @@ def dqn_trainer(policies, env, ob, render_env, step, save_policy_model):
         action = listdict2dictnp(actions, keepdims=True)
 
     ob, rew, done, env_info = env.step(action)
+    print("Reward from environment: ", rew)
 
     # Render now
     render_env()
