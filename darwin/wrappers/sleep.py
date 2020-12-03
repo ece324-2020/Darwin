@@ -61,9 +61,9 @@ class AgentHealthWrapper(gym.Wrapper):
         # self.agent_healths = obs['agent_health']
         for agent in range(self.n_agents):
             self.agent_healths[agent] = sleep_healths[agent] + food_healths[agent]
-            print('agent sleep health', sleep_healths[agent])
-            print('agent food health', food_healths[agent])
-            print('agent health', self.agent_healths[agent])
+            #print('agent sleep health', sleep_healths[agent])
+            #print('agent food health', food_healths[agent])
+            #print('agent health', self.agent_healths[agent])
             # Check agent health for reward
             if self.agent_healths[agent] <= 25:
                 health_rew[agent] -= 1
