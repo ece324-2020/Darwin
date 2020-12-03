@@ -9,7 +9,7 @@ from os import path
 import torch
 import matplotlib.pyplot as plt
 import gym
-from gym.wrappers.monitoring.video_recorder import VideoRecorder
+
 STEPS = 1000
 EPISODES = 100
 
@@ -91,8 +91,6 @@ class TrainViewer(MjViewer):
         count = 0 
         self.ob=self.env.reset()
         
-        video_recorder = None
-        video_recorder = VideoRecorder(self.env,"recording/recording.mp4",enabled=True)
         for episode in range(self.episodes):
             print('#######################')
             print('Episode # {}'.format(episode))
@@ -133,9 +131,7 @@ class TrainViewer(MjViewer):
                 video_recorder.capture_frame()
                 
             self.rewards.append(self.total_rew)
-        print("Saved Video")
-        video_recorder.close()
-        video_recorder.enabled = False
+
         self.plot_reward()
         self.plot_loss()
         self.env.close()
