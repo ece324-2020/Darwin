@@ -38,7 +38,7 @@ class DiscretizedObservationWrapper(gym.ObservationWrapper):
 
 
 class DiscretizeActionWrapper(gym.ActionWrapper):
-    def __init__(self, env, action_key, nbuckets=11):
+    def __init__(self, env, action_key, nbuckets=2):
         super().__init__(env)
         self.action_key = action_key
         self.discrete_to_continuous_act_map = []
@@ -64,8 +64,7 @@ class DiscretizeActionWrapper(gym.ActionWrapper):
         # print(agent_idxs)
         # print(ac_idxs)
         # print(ac)
-        # print(action)
-        # print(self.discrete_to_continuous_act_map)
+
 
         action[self.action_key] = self.discrete_to_continuous_act_map[agent_idxs, ac_idxs, ac]
         return action

@@ -23,7 +23,7 @@ LEARNING_RATE = 1e-3
 # Experience replay hyperparameters
 REPLAY_CACHE_SIZE = 3000
 MIN_REPLAY_CACHE_SIZE = 1000
-N_UPDATE_TARGET = 450
+N_UPDATE_TARGET = 3000
 
 TRAINING_EPISODES = 1000
 
@@ -36,10 +36,10 @@ class DqnConv(nn.Module):
         self.fc_input_size = (n_agents * (8-n_agents) * 8)
         self.fc1 = nn.Linear(self.fc_input_size, hidden_size)
         self.fc1_bn = nn.BatchNorm1d(hidden_size)
-        self.fc2 = nn.Linear(hidden_size, 2 * hidden_size)
-        self.fc2_bn = nn.BatchNorm1d(2 * hidden_size)
-        self.fc3 = nn.Linear(2 * hidden_size, 3 * hidden_size)
-        self.fc4 = nn.Linear(3 * hidden_size, 11 * 11 * 11)
+        self.fc2 = nn.Linear(hidden_size, int(0.5 * hidden_size))
+        self.fc2_bn = nn.BatchNorm1d(int(0.5 * hidden_size))
+        self.fc3 = nn.Linear(int(0.5 * hidden_size), int(0.25 * hidden_size))
+        self.fc4 = nn.Linear(int(0.25 * hidden_size), 2 * 2 * 2)
         self.relu = nn.ReLU()
 
     def forward(self, x):
@@ -106,6 +106,8 @@ class DQNAgent:
         self.update_target_every = update_target_every
         self.policy_name = policy_name
         self.model = model
+        self.update_target_count = 1
+
         if self.model_type == 'cnn':
             print("cnn")
             if (self.model == None):
@@ -164,7 +166,7 @@ class DQNAgent:
                 new_q_old = reward + (self.gamma * max_next_q)
             '''
             if done:
-                new_q = 0.
+                new_q = reward
             else:
                 new_q = reward + (self.gamma * next_max_q[i])
             
@@ -173,8 +175,8 @@ class DQNAgent:
                 curr_q_vector = curr_q_vector[0]
            
             curr_q_vector[action_to_idx(action)] = new_q
-            #label = curr_q_vector
-            label = np.ones((1,1331)) * float(new_q)
+            label = curr_q_vector
+            # label = np.ones(curr_q_vector.shape) * float(new_q)
   
             train_data.append(convert_obs(curr_state, model_type=self.model_type))
             train_labels.append(label)
@@ -194,12 +196,29 @@ class DQNAgent:
         print(f"Agent {agent_id} - Training Loss: {loss.item()}")
 
         # if step % self.update_target_every == 0:
+        '''
         if step == 0:
             model_state_dict = self.model.state_dict()
             target_model_state_dict = self.target_model.state_dict()
             for name, _ in target_model_state_dict.items():
                 updated_param = model_state_dict[name]
                 target_model_state_dict[name].copy_(updated_param)
+        '''
+        if self.update_target_count == self.update_target_every:
+            print("--------------------------------------------------------")
+            print()
+            print()
+            print("                UPDATED TARGET NETWORK                  ")
+            print()
+            print()
+            print("--------------------------------------------------------")
+            model_state_dict = self.model.state_dict()
+            target_model_state_dict = self.target_model.state_dict()
+            for name, _ in target_model_state_dict.items():
+                updated_param = model_state_dict[name]
+                target_model_state_dict[name].copy_(updated_param)
+
+            self.update_target_count = 1
 
     def update_replay_cache(self, experience, agent_id):
         if self.model_type == 'linear':
@@ -210,7 +229,7 @@ class DQNAgent:
         else:
             self.replay_cache.append(experience)
 
-    def save_policy(self, agent_id, policy_name='sleep_v2', model_type='linear'):
+    def save_policy(self, agent_id, policy_name='sleep', model_type='linear'):
         torch.save(self.model, f"dqn_{policy_name}_{model_type}_agent{agent_id}.pt")
 
     def individual_obs(self, obs, agent_id):
@@ -226,8 +245,10 @@ class DQNAgent:
         if train:
             # Force observation using epsilon-greedy
             if np.random.random() < self.epsilon:
+                
                 random_action = self.env.action_space.sample()['action_movement'][0]
                 random_action = {'action_movement': [random_action]}
+                
                 return random_action
 
         if (model != None):
@@ -251,5 +272,6 @@ class DQNAgent:
         best_action_idx = np.argmax(np.array(q_vector))
         best_action = idx_to_action(best_action_idx)
         action = {'action_movement': [best_action]}
+        
         return action
         

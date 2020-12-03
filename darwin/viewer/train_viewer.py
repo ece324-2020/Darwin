@@ -158,7 +158,7 @@ policy_types = {
 }
 
 
-def qn_trainer(policies, env, ob, render_env, step):
+def qn_trainer(policies, env, ob, render_env, step, save_policy_model):
     if len(policies) == 1:
         action = policies[0].act(ob)
         last_act = action
@@ -205,6 +205,7 @@ def dqn_trainer(policies, env, ob, render_env, step, save_policy_model,model_typ
         last_ob = ob
         actions = []
         for i, policy in enumerate(policies):
+            
             # inp = itemgetter(*ob_policy_idx[i])(ob)
             # inp = listdict2dictnp([inp] if ob_policy_idx[i].shape[0] == 1 else inp)
             
@@ -214,10 +215,14 @@ def dqn_trainer(policies, env, ob, render_env, step, save_policy_model,model_typ
                 existing_model = torch.load(f"models/dqn_{env_name}_{model_type}_agent{i}.pt")
             '''
             ac = policy.act(ob, agent_id=i, train=True,model=exisiting_model)
+            
             actions.append(ac)
+        
         action = listdict2dictnp(actions, keepdims=True)
+        
 
     ob, rew, done, env_info = env.step(action)
+    print("Reward from environment: ", rew)
 
     # Render now
     render_env()

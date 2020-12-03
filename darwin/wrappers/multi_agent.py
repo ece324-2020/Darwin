@@ -11,10 +11,12 @@ class SplitMultiAgentActions(gym.ActionWrapper):
         self.n_agents = self.metadata['n_agents']
         lows = np.split(self.action_space.low, self.n_agents)
         highs = np.split(self.action_space.high, self.n_agents)
+
         self.action_space = Dict({
             'action_movement': Tuple([Box(low=low, high=high, dtype=self.action_space.dtype)
             for low, high in zip(lows, highs)])
         })
+       
     
     def action(self, action):
         return action['action_movement'].flatten()

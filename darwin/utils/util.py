@@ -10,8 +10,10 @@ def listdict2dictnp(l, keepdims=False):
             outer dimensions of each item in the list
     '''
     if keepdims:
+        
         return {k: np.concatenate([d[k] for d in l]) for k in l[0]}
     else:
+       
         return {k: np.array([d[k] for d in l]) for k in l[0]}
 
 def split_obs(obs, keepdims=True):
@@ -65,7 +67,7 @@ def idx_to_action(idx):
     action = [None] * 3
     digit = 0
     while idx > 0:
-        q, r = divmod(idx, 11)
+        q, r = divmod(idx, 2)
         action[digit - 1] = r
         idx = q
         digit -= 1
@@ -78,4 +80,4 @@ def idx_to_action(idx):
 
 def action_to_idx(action):
     action = action['action_movement'][0]
-    return (action[0] * 121) + (action[1] * 11) + action[2]
+    return (action[0] * 4) + (action[1] * 2) + action[2]
