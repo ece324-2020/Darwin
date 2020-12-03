@@ -7,7 +7,9 @@ from mujoco_py import const, MjViewer
 from utils.util import listdict2dictnp, split_obs, convert_obs
 from os import path
 import torch
-
+import matplotlib.pyplot as plt
+import gym
+from gym.wrappers.monitoring.video_recorder import VideoRecorder
 STEPS = 1000
 EPISODES = 100
 
@@ -83,9 +85,14 @@ class TrainViewer(MjViewer):
         self.total_rew_avg = 0.0
         self.n_episodes = 0
         self.rewards = []
-
+        self.reward_plot = []
+        self.loss_plot = []
         self.save_policy_model = False
-
+        count = 0 
+        self.ob=self.env.reset()
+        
+        video_recorder = None
+        video_recorder = VideoRecorder(self.env,"recording/recording.mp4",enabled=True)
         for episode in range(self.episodes):
             print('#######################')
             print('Episode # {}'.format(episode))
@@ -100,29 +107,71 @@ class TrainViewer(MjViewer):
                     if (episode == self.episodes - 1) and (step == 0):
                         self.save_policy_model = True
 
-                self.ob, rew, done, env_info = policy_types[self.policy_type](self.policies, 
+                self.ob, rew, done, env_info,loss = policy_types[self.policy_type](self.policies, 
                                                                                 self.env, 
                                                                                 self.ob, 
                                                                                 self.perform_render,
                                                                                 step,
                                                                                 self.save_policy_model)
 
-                self.total_rew += rew
-
+                if (count >= 1000) and (count % 100 == 0):
+                    self.loss_plot.append(loss)
+                    self.reward_plot.append(rew)
+                    self.total_rew += rew
+                
                 if done or env_info.get('discard_episode', False):
                     self.reset_increment()
                     self.env.unwrapped.sim.set_state(self.saved_state)
                     self.ob = self.ob_copy
                     # Exit this episode
                     break
-
+                
+                count += 1
+            
+                
                 self.perform_render()
-
+                video_recorder.capture_frame()
+                
             self.rewards.append(self.total_rew)
-
+        print("Saved Video")
+        video_recorder.close()
+        video_recorder.enabled = False
+        self.plot_reward()
+        self.plot_loss()
         self.env.close()
 
-    
+    def plot_reward(self):
+        self.reward_plot = np.array(self.reward_plot)
+        n_steps = 100*np.linspace(1,len(self.reward_plot),len(self.reward_plot))
+        agent_0_rew = self.reward_plot[:,0]
+        agent_1_rew = self.reward_plot[:,1]
+        plt.plot(n_steps,agent_0_rew,label="agent0 reward")
+        plt.plot(n_steps,agent_1_rew,label="agent1 reward")
+        plt.legend()
+        plt.xlabel("Number of Time Steps")
+        plt.ylabel("Reward")
+        plt.title("Reward vs. Time Steps")
+        plt.savefig("Reward_plot_baseline_cnn.png")
+        plt.show()
+        
+
+    def plot_loss(self):
+        self.loss_plot = np.array(self.loss_plot)
+        n_steps = 100*np.linspace(1,len(self.loss_plot),len(self.loss_plot))
+        agent_0_loss = self.loss_plot[:,0]
+        agent_1_loss = self.loss_plot[:,1]
+        plt.plot(n_steps,agent_0_loss,label="agent0 loss")
+        plt.plot(n_steps,agent_1_loss,label="agent1 loss")
+        plt.legend()
+        plt.xlabel("Number of Time Steps")
+        plt.ylabel("Loss")
+        plt.title("Loss vs. Time Steps")
+        plt.savefig("Loss_plot_baseline_cnn.png")
+        
+        
+
+
+
     def perform_render(self):
         if self.show_render:
             self.add_overlay(const.GRID_TOPRIGHT, "Reset env; (current seed: {})".format(self.seed), "N - next / P - previous ")
@@ -132,6 +181,7 @@ class TrainViewer(MjViewer):
                     self.add_overlay(const.GRID_TOPRIGHT, k, str(v))
 
             self.env.render()
+           
 
 
     def reset_increment(self):
@@ -231,12 +281,12 @@ def dqn_trainer(policies, env, ob, render_env, step, save_policy_model,model_typ
     # Params (current observation, corresponding action, reward, next observation, finished)
     if len(policies) == 1:
         policies[0].update_replay_cache((last_ob, action, rew, ob, done))
-        policies[0].train(step, agent_id=0)
+        loss = [policies[0].train(step, agent_id=0)]
     else:                    
         # tmp_ob = splitobs(ob, keepdims=False)
         # tmp_ob_policy_idx = np.split(np.arange(len(ob)), len(policies))
         tmp_ob = ob
-
+        loss = []
         for i, (a, r, policy) in enumerate(zip(actions, rew, policies)):
             # last_inp = itemgetter(*last_ob_idx[i])(last_ob)
             # last_inp = listdict2dictnp([last_inp] if last_ob_idx[i].shape[0] == 1 else last_inp)
@@ -244,11 +294,11 @@ def dqn_trainer(policies, env, ob, render_env, step, save_policy_model,model_typ
             # inp = listdict2dictnp([inp] if tmp_ob_policy_idx[i].shape[0] == 1 else inp)
 
             policy.update_replay_cache((last_ob, a, r, tmp_ob, done), agent_id=i)
-            policy.train(step, agent_id=i)
-
+            l = policy.train(step, agent_id=i)
+            loss.append(l)
     if save_policy_model:
         for i, policy in enumerate(policies):
             policy.save_policy(agent_id=i)
 
-    return ob, rew, done, env_info
+    return ob, rew, done, env_info,loss
 
