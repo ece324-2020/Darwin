@@ -66,11 +66,15 @@ class AgentHealthWrapper(gym.Wrapper):
             #print('agent health', self.agent_healths[agent])
             # Check agent health for reward
             if self.agent_healths[agent] <= 25:
-                health_rew[agent] -= 1
+                health_rew[agent] -= 50
             elif self.agent_healths[agent] <= 50:
-                health_rew[agent] -= 0.5
+                health_rew[agent] -= 50
             elif 50 <= self.agent_healths[agent] <= self.max_agent_health:
-                health_rew[agent] += 1
+                health_rew[agent] += 50
+
+            # Competition reward
+            # if self.agent_healths[agent] == max(self.agent_healths):
+            #     health_rew[agent] += 150
 
             # Agent health decreases with each time step
             # self.agent_healths[agent] -= self.agent_health_tick
