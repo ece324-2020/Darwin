@@ -22,7 +22,7 @@ class EvalViewer(MjViewer):
         seed - environment seed to view
         duration - time in seconds to run the policy, run forever if duration=None
     '''
-    def __init__(self, env, policy_path, policy_type='dqn', model_type='linear', show_render=True, seed=None, duration=None, episodes=EPISODES, steps=STEPS):
+    def __init__(self, env, policy_path, policy_type='dqn', model_type='cnn', show_render=True, seed=None, duration=None, episodes=EPISODES, steps=STEPS):
         if seed is None:
             self.seed = env.seed()[0]
         else:

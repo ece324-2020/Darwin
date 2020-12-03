@@ -208,7 +208,7 @@ def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,
     env.add_module(WallScenarios(grid_size=grid_size,door_size=door_size,scenario=scenario))
     # Add agents
     agent_placement_fn = [outside_quadrant_placement] * n_agents
-    env.add_module(Agents(n_agents,color=[np.array((25., 25.,25., 25.)) / 255] * n_agents))
+    env.add_module(Agents(n_agents,color=[np.array((25., 25.,25., 25.)) / 255] * n_agents,placement_fn=agent_placement_fn))
     # Add sleep sites
     env.add_module(Sleep(n_sites=n_agents if n_agents < 3 else 2, placement_fn=outside_quadrant_placement))
     # Add food sites

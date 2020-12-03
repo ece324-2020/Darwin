@@ -16,7 +16,7 @@ from viewer.eval_viewer import EvalViewer
 from wrappers.multi_agent import JoinMultiAgentActions
 logger = logging.getLogger(__name__)
 
-STEP_COUNT = 300
+STEP_COUNT = 500
 EPISODE_COUNT = 100
 
 
@@ -29,7 +29,7 @@ EPISODE_COUNT = 100
 @click.option('--train', required=False, default=True, type=bool)
 @click.option('--show-render', required=False, default=True, type=bool)
 @click.option('--save-policy', required=False, default=False, type=bool)
-   
+
 
 def main(env_name, env_only, policy_name, steps, episodes, train, show_render, save_policy):
     if env_only:
@@ -54,12 +54,12 @@ def main(env_name, env_only, policy_name, steps, episodes, train, show_render, s
         if train:
             # Train network
             print('Entering training')
-            viewer = TrainViewer(env, policies, policy_type=policy_name, steps=steps, show_render=show_render, save_policy=save_policy)
+            viewer = TrainViewer(env=env,policies=policies, policy_type=policy_name, steps=steps, show_render=show_render, save_policy=save_policy)
             viewer.run()
         else:
             # Inference with pre-built model
-            policy_path = ["darwin/models/dqn_baseline_linear_agent0.pt",
-                           "darwin/models/dqn_baseline_linear_agent1.pt"]
+            policy_path = ["models/dqn_baseline_cnn_agent0.pt",
+                           "models/dqn_baseline_cnn_agent1.pt"]
             viewer = EvalViewer(env, policy_path=policy_path, policy_type=policy_name, steps=steps, show_render=show_render)
             viewer.run()
 

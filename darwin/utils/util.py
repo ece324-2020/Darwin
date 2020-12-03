@@ -25,15 +25,21 @@ def split_obs(obs, keepdims=True):
 
 def convert_obs(obs, model_type, n_agents=2, eval=False):
     labels = ['observation_self','agent_qpos_qvel','lidar']
-    if model_type == 'cnn' and n_agents == 2:
+    if model_type == 'cnn':
         self_obs = obs[labels[0]]
-        agent_qpos_qvel = obs[labels[1]].reshape((2,8))
-        lidar = obs[labels[2]].reshape((2,8))
+        agent_qpos_qvel = obs[labels[1]].reshape((n_agents,8))
+        lidar = obs[labels[2]].reshape((n_agents,8))
+        '''
+        input_conv = np.stack((self_obs[0],agent_qpos_qvel[0][0],agent_qpos_qvel[0][1],agent_qpos_qvel[0][2],lidar[0],\
+            self_obs[1],agent_qpos_qvel[1][0],agent_qpos_qvel[1][1],agent_qpos_qvel[1][2],lidar[1],\
+                self_obs[2],agent_qpos_qvel[2][0],agent_qpos_qvel[2][1],agent_qpos_qvel[2][2],lidar[2],\
+                    self_obs[3],agent_qpos_qvel[3][0],agent_qpos_qvel[3][1],agent_qpos_qvel[3][2],lidar[3]),axis=-1)
+        '''
         input_conv = np.stack((self_obs[0],agent_qpos_qvel[0],lidar[0],self_obs[1],agent_qpos_qvel[1],lidar[1]),axis=-1)
         if eval:
-            input_conv = np.reshape(input_conv, (1, 1, 8, 6))
+            input_conv = np.reshape(input_conv, (1, 1, 8, (n_agents+1)*n_agents))
         else:
-            input_conv = np.reshape(input_conv, (1, 8, 6))
+            input_conv = np.reshape(input_conv, (1, 8, (n_agents+1)*n_agents))
         return input_conv
 
     elif model_type == 'linear':

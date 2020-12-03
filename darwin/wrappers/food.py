@@ -103,8 +103,31 @@ class FoodHealthWrapper(gym.Wrapper):
             for agent in range(self.n_agents):
                 for agent_food in range(self.n_food):
                     if (eat[agent][agent_food] == 1):
-                        eat[agent][agent_food] = reward_function(dist_to_food[agent][agent_food]) * self.max_food_health
-                        #print(eat[agent][agent_food])
+                        dist = dist_to_food[agent][agent_food]
+                        eat[agent][agent_food] = reward_function(dist) * self.max_food_health
+                        '''
+                        if (dist >= 3.):
+                            eat[agent][agent_food] = 0.0001 * self.max_food_health
+                        elif (dist >= 2.) and (dist < 3.):
+                            eat[agent][agent_food] = 0.0002 * self.max_food_health
+                        elif (dist >= 1.) and (dist < 2.):
+                            eat[agent][agent_food] = 0.0004 * self.max_food_health
+                        elif (dist >= 0.5) and (dist < 1.):
+                            eat[agent][agent_food] = 0.006 * self.max_food_health
+                        elif (dist >= 0.4) and (dist < 0.5):
+                            eat[agent][agent_food] = 0.008 * self.max_food_health
+                        elif (dist >= 0.3) and (dist < 0.4):
+                            eat[agent][agent_food] = 0.01 * self.max_food_health
+                        elif (dist >= 0.2) and (dist < 0.3):
+                            eat[agent][agent_food] = 0.05 * self.max_food_health
+                        elif (dist >= 0.1) and (dist < 0.2):
+                            eat[agent][agent_food] = 0.1 * self.max_food_health
+                        elif (dist > 0.) and (dist < 0.1):
+                            eat[agent][agent_food] = 0.2 * self.max_food_health
+                        elif (dist == 0.):
+                            eat[agent][agent_food] = 1 * self.max_food_health
+                        '''
+
                         if (eat[agent][agent_food] > self.food_healths[agent_food][0]):
                             eat[agent][agent_food] = self.food_healths[agent_food][0] 
                             if (agent == 0):
@@ -112,7 +135,7 @@ class FoodHealthWrapper(gym.Wrapper):
                            
             
             eat_per_food = np.sum(eat, 0)
-           
+            #print("eat_per_food: ",eat_per_food)
             #print(f"eat_per_food:{eat_per_food}\n")
             # Make sure that all agents can't have the last bite of food.
             # At that point, food is split evenly
@@ -149,7 +172,7 @@ class FoodHealthWrapper(gym.Wrapper):
             food_rew = np.sum(eat, axis=1)
         else:
             food_rew = 0.0
-
+        #print("food health:",self.food_healths)
         info['agents_eat'] = eat
         rew += food_rew * self.curr_reward_scale
         # print("food health: ", self.observation(obs)['food_health'])

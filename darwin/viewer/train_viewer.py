@@ -5,9 +5,10 @@ from operator import itemgetter
 import time
 from mujoco_py import const, MjViewer
 from utils.util import listdict2dictnp, split_obs, convert_obs
+from os import path
+import torch
 
-
-STEPS = 300
+STEPS = 1000
 EPISODES = 100
 
 
@@ -90,6 +91,7 @@ class TrainViewer(MjViewer):
             print('Episode # {}'.format(episode))
             print('#######################')
             self.ob = self.env.reset()
+            #print("self.ob:",self.ob)
             for step in range(self.steps):
 
                 print(f"Training DQN - Episode: {episode} Step: {step}")
@@ -193,7 +195,7 @@ def qn_trainer(policies, env, ob, render_env, step):
     return ob, rew, done, env_info
 
 
-def dqn_trainer(policies, env, ob, render_env, step, save_policy_model):
+def dqn_trainer(policies, env, ob, render_env, step, save_policy_model,model_type="cnn",env_name="baseline"):
     if len(policies) == 1:
         action, _ = policies[0].act(ob, agent_id=0, train=True)
         last_ob = ob
@@ -205,8 +207,13 @@ def dqn_trainer(policies, env, ob, render_env, step, save_policy_model):
         for i, policy in enumerate(policies):
             # inp = itemgetter(*ob_policy_idx[i])(ob)
             # inp = listdict2dictnp([inp] if ob_policy_idx[i].shape[0] == 1 else inp)
-
-            ac = policy.act(ob, agent_id=i, train=True)
+            
+            exisiting_model = None
+            '''
+            if (path.exists(f"models/dqn_{env_name}_{model_type}_agent{i}.pt")):
+                existing_model = torch.load(f"models/dqn_{env_name}_{model_type}_agent{i}.pt")
+            '''
+            ac = policy.act(ob, agent_id=i, train=True,model=exisiting_model)
             actions.append(ac)
         action = listdict2dictnp(actions, keepdims=True)
 
