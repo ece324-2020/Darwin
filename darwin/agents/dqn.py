@@ -219,7 +219,7 @@ class DQNAgent:
                 target_model_state_dict[name].copy_(updated_param)
 
             self.update_target_count = 1
-
+        return loss.item()
     def update_replay_cache(self, experience, agent_id):
         if self.model_type == 'linear':
             s, a, r, s_next, done = experience
@@ -230,7 +230,8 @@ class DQNAgent:
             self.replay_cache.append(experience)
 
     def save_policy(self, agent_id, policy_name='sleep', model_type='linear'):
-        torch.save(self.model, f"dqn_{policy_name}_{model_type}_agent{agent_id}.pt")
+        #torch.save(self.model, f"dqn_{policy_name}_{model_type}_agent{agent_id}.pt")
+        torch.save(self.model,f"final_dqn_baseline_cnn_agent{agent_id}.pt")
 
     def individual_obs(self, obs, agent_id):
         full_obs = split_obs(obs, keepdims=False)

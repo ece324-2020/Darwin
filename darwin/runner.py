@@ -16,7 +16,7 @@ from viewer.eval_viewer import EvalViewer
 from wrappers.multi_agent import JoinMultiAgentActions
 logger = logging.getLogger(__name__)
 
-STEP_COUNT = 500
+STEP_COUNT = 1000
 EPISODE_COUNT = 100
 
 
@@ -28,7 +28,7 @@ EPISODE_COUNT = 100
 @click.option('--episodes', required=False, default=EPISODE_COUNT, type=int)
 @click.option('--train', required=False, default=True, type=bool)
 @click.option('--show-render', required=False, default=True, type=bool)
-@click.option('--save-policy', required=False, default=False, type=bool)
+@click.option('--save-policy', required=False, default=True, type=bool)
 
 
 def main(env_name, env_only, policy_name, steps, episodes, train, show_render, save_policy):
