@@ -65,7 +65,7 @@ class BaselineRewardWrapper(gym.Wrapper):
     def step(self, action):
         obs, rew, done, info = self.env.step(action)
 
-        this_rew = np.subtract(np.ones((self.n_agents,)), 1.01)
+        this_rew = np.subtract(np.ones((self.n_agents,)), 2)
         
         rew += this_rew
         return obs, rew, done, info
@@ -186,7 +186,7 @@ def make_env(n_agents=2, n_food=10, horizon=50, floor_size=4.,
     env.add_module(WallScenarios(grid_size=grid_size,door_size=door_size,scenario=scenario))
     # Add agents
     agent_placement_fn = [outside_quadrant_placement] * n_agents
-    env.add_module(Agents(n_agents,color=[np.array((25., 25.,25., 25.)) / 255] * n_agents,placement_fn=uniform_placement))
+    env.add_module(Agents(n_agents,color=[np.array((25., 25.,25., 255.)) / 255,np.array((255., 0.,0., 255.)) / 255],placement_fn=uniform_placement))
     # Add food sites
     env.add_module(Food(n_food, placement_fn=uniform_placement))
     # Add lidar

@@ -200,7 +200,7 @@ class SimpleFoodHealthWrapper(gym.Wrapper):
             reward_scale_obs (bool): If true, adds the reward scale for the current
                 episode to food_obs
     '''
-    def __init__(self, env, n_food=10,eat_thresh=0.5, max_food_health=5, respawn_time=np.inf,
+    def __init__(self, env, n_food=10,eat_thresh=0.5, max_food_health=5., respawn_time=np.inf,
                  reward_scale=1.0, reward_scale_obs=False):
         super().__init__(env)
         self.n_food = n_food

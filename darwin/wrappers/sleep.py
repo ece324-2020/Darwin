@@ -66,11 +66,11 @@ class AgentHealthWrapper(gym.Wrapper):
             #print('agent health', self.agent_healths[agent])
             # Check agent health for reward
             if self.agent_healths[agent] <= 25:
-                health_rew[agent] -= 1
+                health_rew[agent] -= 75
             elif self.agent_healths[agent] <= 50:
-                health_rew[agent] -= 0.5
+                health_rew[agent] -= 50
             elif 50 <= self.agent_healths[agent] <= self.max_agent_health:
-                health_rew[agent] += 1
+                health_rew[agent] += 50
 
             # Agent health decreases with each time step
             # self.agent_healths[agent] -= self.agent_health_tick
@@ -198,7 +198,7 @@ class AltFoodHealthWrapper(gym.Wrapper):
             reward_scale_obs (bool): If true, adds the reward scale for the current
                 episode to food_obs
     '''
-    def __init__(self, env, n_food=10,eat_thresh=0.5, max_food_health=5, agent_max_food=50, agent_starting_discount=0.6, agent_food_loss_tick=0.25, respawn_time=40,
+    def __init__(self, env, n_food=10,eat_thresh=2.5, max_food_health=15, agent_max_food=50, agent_starting_discount=0.6, agent_food_loss_tick=0.50, respawn_time=40,
                  reward_scale=1.0, reward_scale_obs=False):
         super().__init__(env)
         self.n_food = n_food

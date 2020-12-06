@@ -27,7 +27,7 @@ def splitobs(obs, keepdims=True):
 class TrainViewer(MjViewer):
     def __init__(self, env, policies, policy_type='dqn', show_render=True, save_policy=False, seed=None, duration=None, episodes=EPISODES, steps=STEPS):
         if seed is None:
-            self.seed = env.seed()[0]
+            self.seed = env.seed()[0] 
         else:
             self.seed = seed
             env.seed(seed)
@@ -96,7 +96,8 @@ class TrainViewer(MjViewer):
             print('Episode # {}'.format(episode))
             print('#######################')
             self.ob = self.env.reset()
-            #print("self.ob:",self.ob)
+            print("self.ob:",self.ob)
+            print("Self.action:",self.env.action_space())
             for step in range(self.steps):
 
                 print(f"Training DQN - Episode: {episode} Step: {step}")
@@ -111,8 +112,9 @@ class TrainViewer(MjViewer):
                                                                                 self.perform_render,
                                                                                 step,
                                                                                 self.save_policy_model)
-
-                if (count >= 1000) and (count % 100 == 0):
+                print("rew:",rew)
+                print("count:",count)
+                if (count >= 1000) and (count % 10 == 0):
                     self.loss_plot.append(loss)
                     self.reward_plot.append(rew)
                     self.total_rew += rew
@@ -128,17 +130,19 @@ class TrainViewer(MjViewer):
             
                 
                 self.perform_render()
-                video_recorder.capture_frame()
+               
                 
             self.rewards.append(self.total_rew)
 
+        
         self.plot_reward()
         self.plot_loss()
         self.env.close()
 
     def plot_reward(self):
+        print(self.reward_plot)
         self.reward_plot = np.array(self.reward_plot)
-        n_steps = 100*np.linspace(1,len(self.reward_plot),len(self.reward_plot))
+        n_steps = 200*np.linspace(1,len(self.reward_plot),len(self.reward_plot))
         agent_0_rew = self.reward_plot[:,0]
         agent_1_rew = self.reward_plot[:,1]
         plt.plot(n_steps,agent_0_rew,label="agent0 reward")
@@ -147,13 +151,14 @@ class TrainViewer(MjViewer):
         plt.xlabel("Number of Time Steps")
         plt.ylabel("Reward")
         plt.title("Reward vs. Time Steps")
-        plt.savefig("Reward_plot_baseline_cnn.png")
+        plt.savefig("Reward_plot_sleep_cnn.png")
         plt.show()
         
 
     def plot_loss(self):
+        print(self.loss_plot)
         self.loss_plot = np.array(self.loss_plot)
-        n_steps = 100*np.linspace(1,len(self.loss_plot),len(self.loss_plot))
+        n_steps = 200*np.linspace(1,len(self.loss_plot),len(self.loss_plot))
         agent_0_loss = self.loss_plot[:,0]
         agent_1_loss = self.loss_plot[:,1]
         plt.plot(n_steps,agent_0_loss,label="agent0 loss")
@@ -162,7 +167,7 @@ class TrainViewer(MjViewer):
         plt.xlabel("Number of Time Steps")
         plt.ylabel("Loss")
         plt.title("Loss vs. Time Steps")
-        plt.savefig("Loss_plot_baseline_cnn.png")
+        plt.savefig("Loss_plot_sleep_cnn.png")
         
         
 

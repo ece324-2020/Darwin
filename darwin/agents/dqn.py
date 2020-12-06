@@ -23,7 +23,7 @@ LEARNING_RATE = 1e-3
 # Experience replay hyperparameters
 REPLAY_CACHE_SIZE = 3000
 MIN_REPLAY_CACHE_SIZE = 1000
-N_UPDATE_TARGET = 3000
+N_UPDATE_TARGET = 5000
 
 TRAINING_EPISODES = 1000
 
@@ -231,7 +231,7 @@ class DQNAgent:
 
     def save_policy(self, agent_id, policy_name='sleep', model_type='linear'):
         #torch.save(self.model, f"dqn_{policy_name}_{model_type}_agent{agent_id}.pt")
-        torch.save(self.model,f"final_dqn_baseline_cnn_agent{agent_id}.pt")
+        torch.save(self.model,f"final_dqn_sleep_cnn_agent{agent_id}.pt")
 
     def individual_obs(self, obs, agent_id):
         full_obs = split_obs(obs, keepdims=False)
