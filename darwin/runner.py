@@ -64,28 +64,34 @@ def main(env_name, env_only, policy_name, steps, episodes, train, show_render, s
     #         viewer.run()
 
     else:
+        train_env, _ = load_env(env_name, core_dir=worldgen_path(),
+                                envs_dir='examples', xmls_dir='xmls',
+                                return_args_remaining=True)
+        
+        eval_env, _ = load_env(env_name, core_dir=worldgen_path(),
+                                envs_dir='examples', xmls_dir='xmls',
+                                return_args_remaining=True)
+
+        if isinstance(train_env.action_space, Tuple):
+            train_env = JoinMultiAgentActions(train_env)
+            eval_env = JoinMultiAgentActions(eval_env)
+        if train_env is None or eval_env is None:
+            raise Exception(f'Could not find environment based on pattern {env_name}')
+
+        policies = []
+        for _ in range(train_env.metadata['n_agents']):
+            policies.append(load_policy(policy_name, train_env))
         if train:
-            train_env, _ = load_env(env_name, core_dir=worldgen_path(),
-                                    envs_dir='examples', xmls_dir='xmls',
-                                    return_args_remaining=True)
-            
-            eval_env, _ = load_env(env_name, core_dir=worldgen_path(),
-                                    envs_dir='examples', xmls_dir='xmls',
-                                    return_args_remaining=True)
-
-            if isinstance(train_env.action_space, Tuple):
-                train_env = JoinMultiAgentActions(train_env)
-                eval_env = JoinMultiAgentActions(eval_env)
-            if train_env is None or eval_env is None:
-                raise Exception(f'Could not find environment based on pattern {env_name}')
-
-            policies = []
-            for _ in range(train_env.metadata['n_agents']):
-                policies.append(load_policy(policy_name, train_env))
 
             # Train network
             print('Entering training')
             viewer = TrainViewer(eval_env, policies, policy_type=policy_name, steps=steps, episodes=episodes, show_render=show_render, save_policy=save_policy)
+            viewer.run()
+        else:
+    #         # Inference with pre-built model
+            policy_path = ["final_dqn_baseline_cnn_agent0.pt",
+                            "final_dqn_baseline_cnn_agent1.pt"]
+            viewer = EvalViewer(eval_env, policy_path=policy_path, policy_type=policy_name, steps=steps, episodes=episodes, show_render=show_render)
             viewer.run()
 
 
