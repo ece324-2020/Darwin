@@ -85,10 +85,8 @@ class BaselineRewardWrapper(gym.Wrapper):
 
         this_rew = np.subtract(np.ones((self.n_agents,)), 1.5)
         
-        rew += this_rew
+        rew = np.zeros((self.n_agents,)) + rew
         return obs, rew, done, info
-
-
 
 
 def update_obs_space(env, delta):
